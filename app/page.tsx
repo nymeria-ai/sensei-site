@@ -604,43 +604,111 @@ export default function Home() {
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            {[
-              {
-                icon: "🎯",
-                title: "Task Execution",
-                question: "Can the agent do the job?",
-                desc: "Measure real performance against domain-specific KPIs. Each task is scored on concrete, quantifiable metrics — not vibes.",
-                delay: "fade-up-delay-1",
-              },
-              {
-                icon: "🧠",
-                title: "Reasoning",
-                question: "Can it explain its decisions?",
-                desc: "Probe the agent's thought process. Great execution means nothing if the agent can't articulate why it made a choice.",
-                delay: "fade-up-delay-2",
-              },
-              {
-                icon: "📈",
-                title: "Self-Improvement",
-                question: "Can it learn from feedback?",
-                desc: "Give the agent feedback and watch it adapt. The best agents don't just perform — they evolve.",
-                delay: "fade-up-delay-3",
-              },
-            ].map((pillar) => (
-              <div
-                key={pillar.title}
-                className={`fade-up ${pillar.delay} group p-8 rounded-2xl bg-[#ffffff04] border border-[#ffffff08] hover:border-[#d4a574]/20 transition-all duration-500`}
-              >
-                <div className="text-4xl mb-5">{pillar.icon}</div>
-                <h3 className="text-xl font-bold mb-2">{pillar.title}</h3>
-                <p className="text-[#d4a574] text-sm font-medium mb-4">
-                  {pillar.question}
-                </p>
-                <p className="text-[#e8e4df]/50 text-sm leading-relaxed">
-                  {pillar.desc}
-                </p>
+            {/* Task Execution — Strike stance */}
+            <div className="fade-up fade-up-delay-1 group p-8 rounded-2xl bg-[#ffffff04] border border-[#ffffff08] hover:border-[#d4a574]/20 transition-all duration-500">
+              <div className="mb-5 w-16 h-16">
+                <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
+                  {/* Gi in forward strike/punch pose — action, execution */}
+                  {/* Head */}
+                  <circle cx="50" cy="18" r="10" fill="#d4a574" opacity="0.9"/>
+                  {/* Belt knot */}
+                  <rect x="42" y="48" width="16" height="4" rx="2" fill="#d4a574"/>
+                  {/* Torso - gi jacket */}
+                  <path d="M38 28 L30 50 L35 52 L42 35 L42 55 L58 55 L58 35 L65 52 L70 50 L62 28 Z" fill="#e8e4df" opacity="0.85"/>
+                  {/* Gi lapel V */}
+                  <path d="M45 28 L50 42 L55 28" stroke="#d4a574" strokeWidth="2" fill="none" opacity="0.6"/>
+                  {/* Right arm — extended forward in strike */}
+                  <path d="M62 32 L78 36 L85 33" stroke="#e8e4df" strokeWidth="5" strokeLinecap="round" opacity="0.85"/>
+                  {/* Right fist */}
+                  <circle cx="87" cy="32" r="4" fill="#d4a574" opacity="0.9"/>
+                  {/* Left arm — pulled back */}
+                  <path d="M38 32 L28 40 L32 45" stroke="#e8e4df" strokeWidth="5" strokeLinecap="round" opacity="0.85"/>
+                  {/* Pants */}
+                  <path d="M42 55 L38 80 L44 80 L50 65 L56 80 L62 80 L58 55 Z" fill="#e8e4df" opacity="0.7"/>
+                  {/* Front leg forward */}
+                  <path d="M44 80 L40 95" stroke="#e8e4df" strokeWidth="5" strokeLinecap="round" opacity="0.7"/>
+                  {/* Back leg */}
+                  <path d="M56 80 L64 93" stroke="#e8e4df" strokeWidth="5" strokeLinecap="round" opacity="0.7"/>
+                  {/* Motion lines */}
+                  <line x1="90" y1="28" x2="96" y2="26" stroke="#d4a574" strokeWidth="1.5" opacity="0.4"/>
+                  <line x1="90" y1="33" x2="96" y2="33" stroke="#d4a574" strokeWidth="1.5" opacity="0.4"/>
+                  <line x1="90" y1="38" x2="96" y2="40" stroke="#d4a574" strokeWidth="1.5" opacity="0.4"/>
+                </svg>
               </div>
-            ))}
+              <h3 className="text-xl font-bold mb-2">Task Execution</h3>
+              <p className="text-[#d4a574] text-sm font-medium mb-4">Can the agent do the job?</p>
+              <p className="text-[#e8e4df]/50 text-sm leading-relaxed">Measure real performance against domain-specific KPIs. Each task is scored on concrete, quantifiable metrics — not vibes.</p>
+            </div>
+
+            {/* Reasoning — Meditation/seiza pose */}
+            <div className="fade-up fade-up-delay-2 group p-8 rounded-2xl bg-[#ffffff04] border border-[#ffffff08] hover:border-[#d4a574]/20 transition-all duration-500">
+              <div className="mb-5 w-16 h-16">
+                <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
+                  {/* Gi in seiza meditation pose — contemplation, reasoning */}
+                  {/* Head */}
+                  <circle cx="50" cy="22" r="10" fill="#d4a574" opacity="0.9"/>
+                  {/* Eyes closed - meditation */}
+                  <line x1="45" y1="21" x2="48" y2="21" stroke="#0a0a0a" strokeWidth="1.5" strokeLinecap="round"/>
+                  <line x1="52" y1="21" x2="55" y2="21" stroke="#0a0a0a" strokeWidth="1.5" strokeLinecap="round"/>
+                  {/* Torso - gi jacket */}
+                  <path d="M38 32 L35 58 L65 58 L62 32 Z" fill="#e8e4df" opacity="0.85"/>
+                  {/* Gi lapel V */}
+                  <path d="M44 32 L50 48 L56 32" stroke="#d4a574" strokeWidth="2" fill="none" opacity="0.6"/>
+                  {/* Belt */}
+                  <rect x="36" y="52" width="28" height="4" rx="2" fill="#d4a574"/>
+                  {/* Arms crossed in front — hands on knees, meditation */}
+                  <path d="M38 38 L28 50 L35 58" stroke="#e8e4df" strokeWidth="5" strokeLinecap="round" opacity="0.85"/>
+                  <path d="M62 38 L72 50 L65 58" stroke="#e8e4df" strokeWidth="5" strokeLinecap="round" opacity="0.85"/>
+                  {/* Folded legs - seiza */}
+                  <ellipse cx="50" cy="68" rx="18" ry="8" fill="#e8e4df" opacity="0.7"/>
+                  <ellipse cx="50" cy="76" rx="20" ry="6" fill="#e8e4df" opacity="0.5"/>
+                  {/* Thought/wisdom aura */}
+                  <circle cx="50" cy="22" r="16" stroke="#d4a574" strokeWidth="1" opacity="0.2" strokeDasharray="3 3"/>
+                  <circle cx="50" cy="22" r="22" stroke="#d4a574" strokeWidth="0.5" opacity="0.1" strokeDasharray="2 4"/>
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold mb-2">Reasoning</h3>
+              <p className="text-[#d4a574] text-sm font-medium mb-4">Can it explain its decisions?</p>
+              <p className="text-[#e8e4df]/50 text-sm leading-relaxed">Probe the agent&apos;s thought process. Great execution means nothing if the agent can&apos;t articulate why it made a choice.</p>
+            </div>
+
+            {/* Self-Improvement — Rising kata pose */}
+            <div className="fade-up fade-up-delay-3 group p-8 rounded-2xl bg-[#ffffff04] border border-[#ffffff08] hover:border-[#d4a574]/20 transition-all duration-500">
+              <div className="mb-5 w-16 h-16">
+                <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
+                  {/* Gi in rising/upward kata pose — growth, improvement */}
+                  {/* Head */}
+                  <circle cx="50" cy="16" r="10" fill="#d4a574" opacity="0.9"/>
+                  {/* Torso - gi jacket */}
+                  <path d="M40 26 L37 55 L63 55 L60 26 Z" fill="#e8e4df" opacity="0.85"/>
+                  {/* Gi lapel V */}
+                  <path d="M45 26 L50 40 L55 26" stroke="#d4a574" strokeWidth="2" fill="none" opacity="0.6"/>
+                  {/* Belt */}
+                  <rect x="38" y="48" width="24" height="4" rx="2" fill="#d4a574"/>
+                  {/* Both arms raised upward — rising, ascending */}
+                  <path d="M40 30 L28 22 L22 8" stroke="#e8e4df" strokeWidth="5" strokeLinecap="round" opacity="0.85"/>
+                  <path d="M60 30 L72 22 L78 8" stroke="#e8e4df" strokeWidth="5" strokeLinecap="round" opacity="0.85"/>
+                  {/* Open palms facing up */}
+                  <circle cx="20" cy="6" r="4" fill="#d4a574" opacity="0.9"/>
+                  <circle cx="80" cy="6" r="4" fill="#d4a574" opacity="0.9"/>
+                  {/* Pants - wide stance */}
+                  <path d="M39 55 L32 82 L40 82 L50 68 L60 82 L68 82 L61 55 Z" fill="#e8e4df" opacity="0.7"/>
+                  {/* Legs - firm stance */}
+                  <path d="M40 82 L35 96" stroke="#e8e4df" strokeWidth="5" strokeLinecap="round" opacity="0.7"/>
+                  <path d="M60 82 L65 96" stroke="#e8e4df" strokeWidth="5" strokeLinecap="round" opacity="0.7"/>
+                  {/* Rising energy lines */}
+                  <line x1="15" y1="12" x2="12" y2="2" stroke="#d4a574" strokeWidth="1" opacity="0.3"/>
+                  <line x1="50" y1="5" x2="50" y2="-2" stroke="#d4a574" strokeWidth="1" opacity="0.3"/>
+                  <line x1="85" y1="12" x2="88" y2="2" stroke="#d4a574" strokeWidth="1" opacity="0.3"/>
+                  {/* Upward arrows */}
+                  <path d="M10 18 L12 2 L14 18" stroke="#d4a574" strokeWidth="1" fill="none" opacity="0.25"/>
+                  <path d="M86 18 L88 2 L90 18" stroke="#d4a574" strokeWidth="1" fill="none" opacity="0.25"/>
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold mb-2">Self-Improvement</h3>
+              <p className="text-[#d4a574] text-sm font-medium mb-4">Can it learn from feedback?</p>
+              <p className="text-[#e8e4df]/50 text-sm leading-relaxed">Give the agent feedback and watch it adapt. The best agents don&apos;t just perform — they evolve.</p>
+            </div>
           </div>
         </div>
       </section>
