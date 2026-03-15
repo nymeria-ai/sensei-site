@@ -631,11 +631,11 @@ export default function Home() {
                 key={pillar.title}
                 className={`fade-up ${pillar.delay} group p-8 rounded-2xl bg-[#ffffff04] border border-[#ffffff08] hover:border-[#d4a574]/20 transition-all duration-500`}
               >
-                <div className="mb-5 h-28 flex items-center justify-center">
+                <div className="mb-5 h-32 flex items-center justify-center">
                   <img
                     src={pillar.img}
                     alt={pillar.title}
-                    className="h-28 w-auto object-contain mix-blend-lighten opacity-90 group-hover:opacity-100 transition-opacity duration-500"
+                    className="h-32 w-auto object-contain opacity-90 group-hover:opacity-100 transition-opacity duration-500"
                   />
                 </div>
                 <h3 className="text-xl font-bold mb-2">{pillar.title}</h3>
