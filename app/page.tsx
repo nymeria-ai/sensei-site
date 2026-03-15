@@ -604,198 +604,49 @@ export default function Home() {
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            {/* Task Execution — Gi in forward strike pose */}
-            <div className="fade-up fade-up-delay-1 group p-8 rounded-2xl bg-[#ffffff04] border border-[#ffffff08] hover:border-[#d4a574]/20 transition-all duration-500">
-              <div className="mb-5 w-20 h-20">
-                <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
-                  {/* Empty gi in forward punch stance — no body, just the uniform */}
-                  {/* Collar opening (dark void where head would be) */}
-                  <ellipse cx="55" cy="18" rx="8" ry="5" fill="#0a0a0a" opacity="0.6"/>
-
-                  {/* Right lapel */}
-                  <path d="M47 14 L42 18 L48 50 L55 50 L55 22 Z" fill="#e8e4df" opacity="0.9"/>
-                  <path d="M47 14 L42 18 L48 50 L55 50 L55 22 Z" stroke="#c5c0b8" strokeWidth="0.5" opacity="0.3"/>
-                  {/* Left lapel */}
-                  <path d="M63 14 L68 18 L62 50 L55 50 L55 22 Z" fill="#e8e4df" opacity="0.85"/>
-                  <path d="M63 14 L68 18 L62 50 L55 50 L55 22 Z" stroke="#c5c0b8" strokeWidth="0.5" opacity="0.3"/>
-
-                  {/* Jacket body - slightly rotated for action pose */}
-                  <path d="M42 18 L35 22 L33 58 L77 55 L75 22 L68 18" fill="#e8e4df" opacity="0.82"/>
-                  <path d="M42 18 L35 22 L33 58 L77 55 L75 22 L68 18" stroke="#c5c0b8" strokeWidth="0.5" opacity="0.2"/>
-                  {/* Jacket seam line */}
-                  <line x1="55" y1="50" x2="55" y2="57" stroke="#c5c0b8" strokeWidth="0.5" opacity="0.2"/>
-
-                  {/* Belt — obi */}
-                  <path d="M33 52 L77 49 L77 55 L33 58 Z" fill="#d4a574" opacity="0.9"/>
-                  {/* Belt knot */}
-                  <path d="M52 50 Q55 48 58 50 L60 58 Q55 60 52 58 Z" fill="#c9956b" opacity="0.8"/>
-                  {/* Belt tail hanging */}
-                  <path d="M58 54 L65 62 L63 63 L57 56" fill="#d4a574" opacity="0.7"/>
-
-                  {/* Right sleeve — extended forward (strike!) */}
-                  <path d="M75 22 L82 24 L95 26 L96 34 L84 33 L77 35 L75 30" fill="#e8e4df" opacity="0.85"/>
-                  <path d="M75 22 L82 24 L95 26 L96 34 L84 33 L77 35" stroke="#c5c0b8" strokeWidth="0.5" opacity="0.3"/>
-                  {/* Right sleeve opening (dark void) */}
-                  <ellipse cx="96" cy="30" rx="2" ry="4" fill="#0a0a0a" opacity="0.5"/>
-
-                  {/* Left sleeve — pulled back at hip */}
-                  <path d="M35 22 L28 28 L25 40 L30 42 L32 32 L35 30" fill="#e8e4df" opacity="0.85"/>
-                  <path d="M35 22 L28 28 L25 40 L30 42 L32 32" stroke="#c5c0b8" strokeWidth="0.5" opacity="0.3"/>
-                  {/* Left sleeve opening */}
-                  <ellipse cx="27" cy="41" rx="3" ry="2" fill="#0a0a0a" opacity="0.5"/>
-
-                  {/* Right pant leg — forward lunge */}
-                  <path d="M55 56 L60 55 L70 82 L72 95 L64 96 L62 85 L55 62" fill="#e8e4df" opacity="0.75"/>
-                  <path d="M72 95 L64 96" stroke="#c5c0b8" strokeWidth="0.5" opacity="0.3"/>
-                  {/* Right pant opening */}
-                  <ellipse cx="68" cy="96" rx="4" ry="2" fill="#0a0a0a" opacity="0.4"/>
-
-                  {/* Left pant leg — back stance */}
-                  <path d="M33 58 L55 60 L50 68 L40 90 L36 98 L28 97 L32 88 L35 65" fill="#e8e4df" opacity="0.72"/>
-                  <ellipse cx="32" cy="98" rx="4" ry="2" fill="#0a0a0a" opacity="0.4"/>
-
-                  {/* Fabric fold details */}
-                  <path d="M45 30 Q50 35 48 42" stroke="#c5c0b8" strokeWidth="0.5" opacity="0.15" fill="none"/>
-                  <path d="M65 30 Q60 35 62 42" stroke="#c5c0b8" strokeWidth="0.5" opacity="0.15" fill="none"/>
-                  <path d="M40 60 Q42 70 40 78" stroke="#c5c0b8" strokeWidth="0.5" opacity="0.12" fill="none"/>
-                  <path d="M65 58 Q67 68 68 76" stroke="#c5c0b8" strokeWidth="0.5" opacity="0.12" fill="none"/>
-
-                  {/* Motion lines */}
-                  <line x1="100" y1="24" x2="108" y2="22" stroke="#d4a574" strokeWidth="1.5" opacity="0.35"/>
-                  <line x1="100" y1="30" x2="108" y2="30" stroke="#d4a574" strokeWidth="1.5" opacity="0.35"/>
-                  <line x1="100" y1="36" x2="108" y2="38" stroke="#d4a574" strokeWidth="1.5" opacity="0.35"/>
-                </svg>
+            {[
+              {
+                img: "/images/gi-execution.png",
+                title: "Task Execution",
+                question: "Can the agent do the job?",
+                desc: "Measure real performance against domain-specific KPIs. Each task is scored on concrete, quantifiable metrics — not vibes.",
+                delay: "fade-up-delay-1",
+              },
+              {
+                img: "/images/gi-reasoning.png",
+                title: "Reasoning",
+                question: "Can it explain its decisions?",
+                desc: "Probe the agent\u2019s thought process. Great execution means nothing if the agent can\u2019t articulate why it made a choice.",
+                delay: "fade-up-delay-2",
+              },
+              {
+                img: "/images/gi-improvement.png",
+                title: "Self-Improvement",
+                question: "Can it learn from feedback?",
+                desc: "Give the agent feedback and watch it adapt. The best agents don\u2019t just perform \u2014 they evolve.",
+                delay: "fade-up-delay-3",
+              },
+            ].map((pillar) => (
+              <div
+                key={pillar.title}
+                className={`fade-up ${pillar.delay} group p-8 rounded-2xl bg-[#ffffff04] border border-[#ffffff08] hover:border-[#d4a574]/20 transition-all duration-500`}
+              >
+                <div className="mb-5 h-28 flex items-center justify-center">
+                  <img
+                    src={pillar.img}
+                    alt={pillar.title}
+                    className="h-28 w-auto object-contain mix-blend-lighten opacity-90 group-hover:opacity-100 transition-opacity duration-500"
+                  />
+                </div>
+                <h3 className="text-xl font-bold mb-2">{pillar.title}</h3>
+                <p className="text-[#d4a574] text-sm font-medium mb-4">
+                  {pillar.question}
+                </p>
+                <p className="text-[#e8e4df]/50 text-sm leading-relaxed">
+                  {pillar.desc}
+                </p>
               </div>
-              <h3 className="text-xl font-bold mb-2">Task Execution</h3>
-              <p className="text-[#d4a574] text-sm font-medium mb-4">Can the agent do the job?</p>
-              <p className="text-[#e8e4df]/50 text-sm leading-relaxed">Measure real performance against domain-specific KPIs. Each task is scored on concrete, quantifiable metrics — not vibes.</p>
-            </div>
-
-            {/* Reasoning — Gi in seated meditation pose */}
-            <div className="fade-up fade-up-delay-2 group p-8 rounded-2xl bg-[#ffffff04] border border-[#ffffff08] hover:border-[#d4a574]/20 transition-all duration-500">
-              <div className="mb-5 w-20 h-20">
-                <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
-                  {/* Empty gi in seiza/meditation — seated, calm, contemplative */}
-                  {/* Collar opening */}
-                  <ellipse cx="60" cy="22" rx="8" ry="5" fill="#0a0a0a" opacity="0.6"/>
-
-                  {/* Right lapel */}
-                  <path d="M52 18 L47 22 L53 54 L60 54 L60 26 Z" fill="#e8e4df" opacity="0.9"/>
-                  <path d="M52 18 L47 22 L53 54 L60 54 L60 26 Z" stroke="#c5c0b8" strokeWidth="0.5" opacity="0.3"/>
-                  {/* Left lapel */}
-                  <path d="M68 18 L73 22 L67 54 L60 54 L60 26 Z" fill="#e8e4df" opacity="0.85"/>
-                  <path d="M68 18 L73 22 L67 54 L60 54 L60 26 Z" stroke="#c5c0b8" strokeWidth="0.5" opacity="0.3"/>
-
-                  {/* Jacket body — straight, composed */}
-                  <path d="M47 22 L40 26 L38 62 L82 62 L80 26 L73 22" fill="#e8e4df" opacity="0.82"/>
-                  <path d="M47 22 L40 26 L38 62 L82 62 L80 26 L73 22" stroke="#c5c0b8" strokeWidth="0.5" opacity="0.2"/>
-                  {/* Center seam */}
-                  <line x1="60" y1="54" x2="60" y2="62" stroke="#c5c0b8" strokeWidth="0.5" opacity="0.2"/>
-
-                  {/* Belt */}
-                  <path d="M38 56 L82 56 L82 62 L38 62 Z" fill="#d4a574" opacity="0.9"/>
-                  {/* Belt knot — centered, neat */}
-                  <path d="M57 56 Q60 54 63 56 L64 62 Q60 64 56 62 Z" fill="#c9956b" opacity="0.8"/>
-                  {/* Belt tails — hanging symmetrically */}
-                  <path d="M56 59 L50 68 L52 69 L57 61" fill="#d4a574" opacity="0.65"/>
-                  <path d="M64 59 L70 68 L68 69 L63 61" fill="#d4a574" opacity="0.65"/>
-
-                  {/* Left sleeve — resting on knee, relaxed */}
-                  <path d="M40 26 L32 32 L28 48 L24 56 L30 58 L34 50 L36 36 L40 32" fill="#e8e4df" opacity="0.85"/>
-                  <path d="M28 48 L24 56 L30 58" stroke="#c5c0b8" strokeWidth="0.5" opacity="0.3"/>
-                  <ellipse cx="27" cy="57" rx="3" ry="2" fill="#0a0a0a" opacity="0.45"/>
-
-                  {/* Right sleeve — resting on knee, relaxed */}
-                  <path d="M80 26 L88 32 L92 48 L96 56 L90 58 L86 50 L84 36 L80 32" fill="#e8e4df" opacity="0.85"/>
-                  <path d="M92 48 L96 56 L90 58" stroke="#c5c0b8" strokeWidth="0.5" opacity="0.3"/>
-                  <ellipse cx="93" cy="57" rx="3" ry="2" fill="#0a0a0a" opacity="0.45"/>
-
-                  {/* Folded legs/pants — seiza sitting */}
-                  <path d="M38 62 L35 70 L30 78 L90 78 L85 70 L82 62" fill="#e8e4df" opacity="0.72"/>
-                  {/* Feet tucked under */}
-                  <path d="M30 78 L28 84 L92 84 L90 78" fill="#e8e4df" opacity="0.6"/>
-                  <path d="M30 78 L28 84 L92 84 L90 78" stroke="#c5c0b8" strokeWidth="0.5" opacity="0.15"/>
-
-                  {/* Fabric fold details */}
-                  <path d="M50 34 Q55 40 53 48" stroke="#c5c0b8" strokeWidth="0.5" opacity="0.15" fill="none"/>
-                  <path d="M70 34 Q65 40 67 48" stroke="#c5c0b8" strokeWidth="0.5" opacity="0.15" fill="none"/>
-                  <path d="M45 68 Q50 72 55 70" stroke="#c5c0b8" strokeWidth="0.4" opacity="0.12" fill="none"/>
-                  <path d="M65 68 Q70 72 75 70" stroke="#c5c0b8" strokeWidth="0.4" opacity="0.12" fill="none"/>
-
-                  {/* Wisdom aura — subtle rings around collar */}
-                  <circle cx="60" cy="22" r="14" stroke="#d4a574" strokeWidth="0.8" opacity="0.15" strokeDasharray="3 4"/>
-                  <circle cx="60" cy="22" r="20" stroke="#d4a574" strokeWidth="0.5" opacity="0.08" strokeDasharray="2 5"/>
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold mb-2">Reasoning</h3>
-              <p className="text-[#d4a574] text-sm font-medium mb-4">Can it explain its decisions?</p>
-              <p className="text-[#e8e4df]/50 text-sm leading-relaxed">Probe the agent&apos;s thought process. Great execution means nothing if the agent can&apos;t articulate why it made a choice.</p>
-            </div>
-
-            {/* Self-Improvement — Gi in upward rising kata */}
-            <div className="fade-up fade-up-delay-3 group p-8 rounded-2xl bg-[#ffffff04] border border-[#ffffff08] hover:border-[#d4a574]/20 transition-all duration-500">
-              <div className="mb-5 w-20 h-20">
-                <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
-                  {/* Empty gi in rising kata — arms up, wide stance, ascending */}
-                  {/* Collar opening */}
-                  <ellipse cx="60" cy="16" rx="8" ry="5" fill="#0a0a0a" opacity="0.6"/>
-
-                  {/* Right lapel */}
-                  <path d="M52 12 L47 16 L53 48 L60 48 L60 20 Z" fill="#e8e4df" opacity="0.9"/>
-                  <path d="M52 12 L47 16 L53 48 L60 48 L60 20 Z" stroke="#c5c0b8" strokeWidth="0.5" opacity="0.3"/>
-                  {/* Left lapel */}
-                  <path d="M68 12 L73 16 L67 48 L60 48 L60 20 Z" fill="#e8e4df" opacity="0.85"/>
-                  <path d="M68 12 L73 16 L67 48 L60 48 L60 20 Z" stroke="#c5c0b8" strokeWidth="0.5" opacity="0.3"/>
-
-                  {/* Jacket body */}
-                  <path d="M47 16 L40 20 L38 56 L82 56 L80 20 L73 16" fill="#e8e4df" opacity="0.82"/>
-                  <path d="M47 16 L40 20 L38 56 L82 56 L80 20 L73 16" stroke="#c5c0b8" strokeWidth="0.5" opacity="0.2"/>
-                  <line x1="60" y1="48" x2="60" y2="56" stroke="#c5c0b8" strokeWidth="0.5" opacity="0.2"/>
-
-                  {/* Belt */}
-                  <path d="M38 50 L82 50 L82 56 L38 56 Z" fill="#d4a574" opacity="0.9"/>
-                  <path d="M57 50 Q60 48 63 50 L64 56 Q60 58 56 56 Z" fill="#c9956b" opacity="0.8"/>
-                  <path d="M56 53 L48 62 L50 63 L57 55" fill="#d4a574" opacity="0.65"/>
-
-                  {/* Left sleeve — raised high up */}
-                  <path d="M40 20 L32 18 L22 10 L16 4 L12 6 L14 10 L20 16 L28 22 L36 24" fill="#e8e4df" opacity="0.85"/>
-                  <path d="M22 10 L16 4 L12 6 L14 10" stroke="#c5c0b8" strokeWidth="0.5" opacity="0.3"/>
-                  {/* Left sleeve opening */}
-                  <ellipse cx="13" cy="5" rx="2" ry="3" fill="#0a0a0a" opacity="0.45" transform="rotate(-30 13 5)"/>
-
-                  {/* Right sleeve — raised high up */}
-                  <path d="M80 20 L88 18 L98 10 L104 4 L108 6 L106 10 L100 16 L92 22 L84 24" fill="#e8e4df" opacity="0.85"/>
-                  <path d="M98 10 L104 4 L108 6 L106 10" stroke="#c5c0b8" strokeWidth="0.5" opacity="0.3"/>
-                  <ellipse cx="107" cy="5" rx="2" ry="3" fill="#0a0a0a" opacity="0.45" transform="rotate(30 107 5)"/>
-
-                  {/* Right pant leg — wide stance */}
-                  <path d="M60 56 L82 56 L88 85 L92 100 L84 102 L80 88 L70 62" fill="#e8e4df" opacity="0.72"/>
-                  <ellipse cx="88" cy="101" rx="4" ry="2" fill="#0a0a0a" opacity="0.4"/>
-
-                  {/* Left pant leg — wide stance */}
-                  <path d="M38 56 L60 56 L50 62 L40 88 L36 102 L28 100 L32 85 L38 62" fill="#e8e4df" opacity="0.72"/>
-                  <ellipse cx="32" cy="101" rx="4" ry="2" fill="#0a0a0a" opacity="0.4"/>
-
-                  {/* Fabric folds */}
-                  <path d="M50 28 Q55 34 53 42" stroke="#c5c0b8" strokeWidth="0.5" opacity="0.15" fill="none"/>
-                  <path d="M70 28 Q65 34 67 42" stroke="#c5c0b8" strokeWidth="0.5" opacity="0.15" fill="none"/>
-                  <path d="M42 65 Q44 75 42 82" stroke="#c5c0b8" strokeWidth="0.4" opacity="0.12" fill="none"/>
-                  <path d="M78 65 Q80 75 82 82" stroke="#c5c0b8" strokeWidth="0.4" opacity="0.12" fill="none"/>
-
-                  {/* Rising energy lines */}
-                  <line x1="8" y1="8" x2="5" y2="0" stroke="#d4a574" strokeWidth="1" opacity="0.3"/>
-                  <line x1="60" y1="10" x2="60" y2="2" stroke="#d4a574" strokeWidth="1" opacity="0.25"/>
-                  <line x1="112" y1="8" x2="115" y2="0" stroke="#d4a574" strokeWidth="1" opacity="0.3"/>
-                  {/* Small upward sparks */}
-                  <circle cx="6" cy="1" r="1.5" fill="#d4a574" opacity="0.2"/>
-                  <circle cx="60" cy="1" r="1.5" fill="#d4a574" opacity="0.15"/>
-                  <circle cx="114" cy="1" r="1.5" fill="#d4a574" opacity="0.2"/>
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold mb-2">Self-Improvement</h3>
-              <p className="text-[#d4a574] text-sm font-medium mb-4">Can it learn from feedback?</p>
-              <p className="text-[#e8e4df]/50 text-sm leading-relaxed">Give the agent feedback and watch it adapt. The best agents don&apos;t just perform — they evolve.</p>
-            </div>
+            ))}
           </div>
         </div>
       </section>
