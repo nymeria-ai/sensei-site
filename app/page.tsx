@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
+import TestSenseiModal from "@/components/TestSenseiModal";
 
 /* ─── Demo Data ─────────────────────────────────────────────────────── */
 
@@ -530,11 +531,21 @@ export default function Home() {
   const flowRef = useScrollReveal();
   const suitesRef = useScrollReveal();
   const codeRef = useScrollReveal();
+  const [isTestModalOpen, setIsTestModalOpen] = useState(false);
 
   return (
     <main className="min-h-screen">
+      <TestSenseiModal isOpen={isTestModalOpen} onClose={() => setIsTestModalOpen(false)} />
+      
       {/* ── Hero ──────────────────────────────────────────────────── */}
       <section className="hero-gradient relative min-h-screen flex items-center justify-center px-6">
+        {/* Test Sensei Button - Top Right */}
+        <button
+          onClick={() => setIsTestModalOpen(true)}
+          className="fixed top-6 right-6 z-40 px-5 py-2.5 bg-[#d4a574]/10 border border-[#d4a574]/30 rounded-lg font-semibold text-sm text-[#d4a574] hover:bg-[#d4a574]/20 transition-all duration-300 backdrop-blur-sm"
+        >
+          🥋 Test Sensei
+        </button>
         <div className="max-w-4xl mx-auto text-center">
           <div className="mb-8">
             <h1 className="text-6xl sm:text-7xl md:text-8xl font-bold tracking-tight mb-2">
