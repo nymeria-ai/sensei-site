@@ -16,7 +16,7 @@ const DEMOS: DemoSuite[] = [
   {
     key: "sdr",
     label: "SDR Agent",
-    command: "sensei test --suite sdr --agent https://my-agent.ai/api",
+    command: "sensei run --suite sdr-qualification --target https://my-agent.ai/api",
     suiteName: "Sales Development Representative",
     lines: [
       "",
@@ -77,7 +77,7 @@ const DEMOS: DemoSuite[] = [
   {
     key: "support",
     label: "Support Agent",
-    command: "sensei test --suite support --agent https://my-agent.ai/api",
+    command: "sensei run --suite support --target https://my-agent.ai/api",
     suiteName: "Customer Support",
     lines: [
       "",
@@ -137,7 +137,7 @@ const DEMOS: DemoSuite[] = [
   {
     key: "qa",
     label: "QA Engineer",
-    command: "sensei test --suite qa --agent https://my-agent.ai/api",
+    command: "sensei run --suite qa --target https://my-agent.ai/api",
     suiteName: "QA Engineer",
     lines: [
       "",
@@ -197,7 +197,7 @@ const DEMOS: DemoSuite[] = [
   {
     key: "content",
     label: "Content Writer",
-    command: "sensei test --suite content --agent https://my-agent.ai/api",
+    command: "sensei run --suite content --target https://my-agent.ai/api",
     suiteName: "Content Writer",
     lines: [
       "",
@@ -687,7 +687,7 @@ export default function Home() {
             {/* Desktop flow */}
             <div className="hidden md:flex items-center justify-between gap-3">
               {/* Agent */}
-              <FlowNode icon="🤖" label="Your Agent" sublabel="HTTP / SDK" />
+              <FlowNode icon="🤖" label="Your Agent" sublabel="HTTP / Stdio" />
               <FlowArrow className="flow-pulse" />
               {/* Sensei */}
               <FlowNode
@@ -719,7 +719,7 @@ export default function Home() {
 
             {/* Mobile flow — vertical */}
             <div className="flex md:hidden flex-col items-center gap-3">
-              <FlowNode icon="🤖" label="Your Agent" sublabel="HTTP / SDK" />
+              <FlowNode icon="🤖" label="Your Agent" sublabel="HTTP / Stdio" />
               <FlowArrowVertical />
               <FlowNode
                 icon="🥋"
@@ -788,10 +788,10 @@ export default function Home() {
         <div className="max-w-3xl mx-auto">
           <div className="fade-up text-center mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-              Five Lines to Qualify
+              Three Lines to Qualify
             </h2>
             <p className="text-[#e8e4df]/50 max-w-xl mx-auto">
-              Integrate Sensei into your pipeline with a single function call.
+              Load a suite, create an adapter, run. That&apos;s it.
             </p>
           </div>
 
@@ -804,16 +804,18 @@ export default function Home() {
                   <div className="w-3 h-3 rounded-full bg-[#28c840]" />
                 </div>
                 <span className="text-xs text-[#e8e4df]/30 font-mono">
-                  evaluate.ts
+                  qualify.ts
                 </span>
               </div>
               <div className="bg-[#0f0f0f] p-6 font-mono text-sm leading-loose overflow-x-auto">
                 <div>
                   <span className="text-[#c792ea]">import</span>
                   <span className="text-[#e8e4df]">{" { "}</span>
-                  <span className="text-[#ffcb6b]">SenseiEngine</span>
+                  <span className="text-[#ffcb6b]">SuiteLoader</span>
                   <span className="text-[#e8e4df]">{", "}</span>
-                  <span className="text-[#ffcb6b]">HttpAdapter</span>
+                  <span className="text-[#ffcb6b]">Runner</span>
+                  <span className="text-[#e8e4df]">{", "}</span>
+                  <span className="text-[#ffcb6b]">createAdapter</span>
                   <span className="text-[#e8e4df]">{" } "}</span>
                   <span className="text-[#c792ea]">from</span>
                   <span className="text-[#c3e88d]">
@@ -824,32 +826,33 @@ export default function Home() {
                 <div className="h-4" />
                 <div>
                   <span className="text-[#c792ea]">const</span>
+                  <span className="text-[#e8e4df]"> suite </span>
+                  <span className="text-[#89ddff]">=</span>
+                  <span className="text-[#c792ea]"> await</span>
+                  <span className="text-[#82aaff]"> loader</span>
+                  <span className="text-[#e8e4df]">.</span>
+                  <span className="text-[#82aaff]">loadFile</span>
+                  <span className="text-[#e8e4df]">(</span>
+                  <span className="text-[#c3e88d]">{"'./suites/sdr-qualification/suite.yaml'"}</span>
+                  <span className="text-[#e8e4df]">);</span>
+                </div>
+                <div>
+                  <span className="text-[#c792ea]">const</span>
+                  <span className="text-[#e8e4df]"> adapter </span>
+                  <span className="text-[#89ddff]">=</span>
+                  <span className="text-[#82aaff]"> createAdapter</span>
+                  <span className="text-[#e8e4df]">(suite.agent);</span>
+                </div>
+                <div>
+                  <span className="text-[#c792ea]">const</span>
                   <span className="text-[#e8e4df]"> result </span>
                   <span className="text-[#89ddff]">=</span>
                   <span className="text-[#c792ea]"> await</span>
-                  <span className="text-[#82aaff]"> engine</span>
-                  <span className="text-[#e8e4df]">.</span>
+                  <span className="text-[#c792ea]"> new</span>
+                  <span className="text-[#ffcb6b]"> Runner</span>
+                  <span className="text-[#e8e4df]">(adapter).</span>
                   <span className="text-[#82aaff]">run</span>
-                  <span className="text-[#e8e4df]">{"({"}</span>
-                </div>
-                <div className="pl-6">
-                  <span className="text-[#e8e4df]">suite: </span>
-                  <span className="text-[#c3e88d]">{"'sdr'"}</span>
-                  <span className="text-[#e8e4df]">,</span>
-                </div>
-                <div className="pl-6">
-                  <span className="text-[#e8e4df]">adapter: </span>
-                  <span className="text-[#c792ea]">new</span>
-                  <span className="text-[#ffcb6b]"> HttpAdapter</span>
-                  <span className="text-[#e8e4df]">{"({ "}</span>
-                  <span className="text-[#e8e4df]">url: </span>
-                  <span className="text-[#c3e88d]">
-                    {"'https://my-agent.ai/api'"}
-                  </span>
-                  <span className="text-[#e8e4df]">{" }),"};</span>
-                </div>
-                <div>
-                  <span className="text-[#e8e4df]">{"});"}</span>
+                  <span className="text-[#e8e4df]">(suite);</span>
                 </div>
                 <div className="h-4" />
                 <div>
