@@ -58,12 +58,12 @@ interface ScenarioResult {
 }
 
 const SUITES = [
-  { id: "sdr", label: "SDR Qualification", emoji: "📞", desc: "Cold outreach, email personalization, discovery call analysis" },
-  { id: "support", label: "Customer Support", emoji: "🎧", desc: "Ticket resolution, de-escalation, multi-issue handling" },
-  { id: "content", label: "Content Writer", emoji: "✍️", desc: "Blog posts, LinkedIn threads, product launch emails" },
-  { id: "bartender", label: "Bartender", emoji: "🍸", desc: "Cocktail crafting, drunk customers, chaotic group orders (Fun)" },
-  { id: "dungeon-master", label: "Dungeon Master", emoji: "🎲", desc: "Tavern scenes, creative combat, chaotic players (Fun)" },
-  { id: "cat-interview", label: "Cat Interview", emoji: "🐱", desc: "Job interview for Senior Napping Engineer at MeowCorp (Fun)" },
+  { id: "sdr", label: "SDR Qualification", emoji: "📞", desc: "Cold outreach, email personalization, discovery call analysis", tag: null },
+  { id: "support", label: "Customer Support", emoji: "🎧", desc: "Ticket resolution, de-escalation, multi-issue handling", tag: null },
+  { id: "content", label: "Content Writer", emoji: "✍️", desc: "Blog posts, LinkedIn threads, product launch emails", tag: null },
+  { id: "bartender", label: "Bartender", emoji: "🍸", desc: "Cocktail crafting, drunk customers, chaotic group orders", tag: "🎮 Fun" },
+  { id: "dungeon-master", label: "Dungeon Master", emoji: "🎲", desc: "Tavern scenes, creative combat, chaotic players", tag: "🎮 Fun" },
+  { id: "cat-interview", label: "Cat Interview", emoji: "🐱", desc: "Job interview for Senior Napping Engineer at MeowCorp", tag: "🎮 Fun" },
 ];
 
 const LAYER_COLORS: Record<string, string> = {
@@ -343,9 +343,16 @@ export default function TestSenseiModal({ isOpen, onClose }: TestSenseiModalProp
                 <div className="flex items-start gap-4">
                   <span className="text-3xl">{suite.emoji}</span>
                   <div className="flex-1">
-                    <h3 className="text-lg font-bold mb-1 group-hover:text-[#d4a574] transition-colors">
-                      {suite.label}
-                    </h3>
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="text-lg font-bold group-hover:text-[#d4a574] transition-colors">
+                        {suite.label}
+                      </h3>
+                      {suite.tag && (
+                        <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-purple-500/15 border border-purple-500/25 text-purple-300">
+                          {suite.tag}
+                        </span>
+                      )}
+                    </div>
                     <p className="text-sm text-[#e8e4df]/50">{suite.desc}</p>
                   </div>
                   <span className="text-[#e8e4df]/20 group-hover:text-[#d4a574]/50 transition-colors text-xl">→</span>
