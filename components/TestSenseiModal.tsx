@@ -1,7 +1,39 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Suite, Scenario, KPI } from "@/app/api/sensei/suites/route";
+
+interface KPI {
+  id: string;
+  name: string;
+  weight: number;
+  method: string;
+  config: {
+    max_score?: number;
+    rubric?: string;
+    type?: string;
+    expected?: Record<string, number>;
+  };
+}
+
+interface Scenario {
+  id: string;
+  name: string;
+  layer: "execution" | "reasoning" | "self-improvement";
+  description?: string;
+  input: {
+    prompt: string;
+    feedback?: string;
+  };
+  kpis: KPI[];
+  depends_on?: string;
+}
+
+interface Suite {
+  id: string;
+  name: string;
+  description: string;
+  scenarios: Scenario[];
+}
 
 interface TestSenseiModalProps {
   isOpen: boolean;
@@ -9,71 +41,90 @@ interface TestSenseiModalProps {
 }
 
 type Badge = "gold" | "silver" | "bronze" | "none";
+type Phase = "auth" | "select" | "info" | "test" | "result" | "report";
+
+interface KPIScore {
+  kpiId: string;
+  kpiName: string;
+  score: number;
+  maxScore: number;
+  reasoning: string;
+}
 
 interface ScenarioResult {
   scenarioId: string;
-  scores: {
-    kpiId: string;
-    kpiName: string;
-    score: number;
-    maxScore: number;
-    reasoning: string;
-  }[];
+  scores: KPIScore[];
   overallScore: number;
 }
 
 const SUITES = [
-  { id: "sdr", label: "SDR Qualification", emoji: "📞", desc: "Sales Development Representative" },
-  { id: "support", label: "Customer Support", emoji: "🎧", desc: "Technical support & ticket resolution" },
-  { id: "content", label: "Content Writer", emoji: "✍️", desc: "Blog posts, social copy, SEO" },
-  { id: "bartender", label: "Bartender 🍸", emoji: "🍸", desc: "Mixology & customer service (Fun)" },
-  { id: "dungeon-master", label: "Dungeon Master 🎲", emoji: "🎲", desc: "D&D game mastering (Fun)" },
+  { id: "sdr", label: "SDR Qualification", emoji: "📞", desc: "Cold outreach, email personalization, discovery call analysis" },
+  { id: "support", label: "Customer Support", emoji: "🎧", desc: "Ticket resolution, de-escalation, multi-issue handling" },
+  { id: "content", label: "Content Writer", emoji: "✍️", desc: "Blog posts, LinkedIn threads, product launch emails" },
+  { id: "bartender", label: "Bartender", emoji: "🍸", desc: "Cocktail crafting, drunk customers, chaotic group orders (Fun)" },
+  { id: "dungeon-master", label: "Dungeon Master", emoji: "🎲", desc: "Tavern scenes, creative combat, chaotic players (Fun)" },
 ];
 
-const LAYER_COLORS = {
+const LAYER_COLORS: Record<string, string> = {
   execution: "text-blue-400",
   reasoning: "text-purple-400",
   "self-improvement": "text-green-400",
 };
 
-const LAYER_LABELS = {
-  execution: "Task Execution",
-  reasoning: "Reasoning",
-  "self-improvement": "Self-Improvement",
+const LAYER_BG: Record<string, string> = {
+  execution: "bg-blue-400/10 border-blue-400/20",
+  reasoning: "bg-purple-400/10 border-purple-400/20",
+  "self-improvement": "bg-green-400/10 border-green-400/20",
+};
+
+const LAYER_LABELS: Record<string, string> = {
+  execution: "⚡ Task Execution",
+  reasoning: "🧠 Reasoning",
+  "self-improvement": "📈 Self-Improvement",
 };
 
 export default function TestSenseiModal({ isOpen, onClose }: TestSenseiModalProps) {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [phase, setPhase] = useState<Phase>("auth");
   const [password, setPassword] = useState("");
   const [authError, setAuthError] = useState("");
   const [authLoading, setAuthLoading] = useState(false);
 
-  // Suite selection
-  const [selectedSuiteId, setSelectedSuiteId] = useState<string | null>(null);
+  // Suite
   const [suiteData, setSuiteData] = useState<Suite | null>(null);
   const [loadingSuite, setLoadingSuite] = useState(false);
+  const [suiteError, setSuiteError] = useState("");
 
   // Test flow
   const [currentScenarioIndex, setCurrentScenarioIndex] = useState(0);
   const [userResponse, setUserResponse] = useState("");
   const [isScoring, setIsScoring] = useState(false);
+  const [scoringError, setScoringError] = useState("");
   const [scenarioResults, setScenarioResults] = useState<ScenarioResult[]>([]);
-  const [showScenarioResult, setShowScenarioResult] = useState(false);
-  const [testComplete, setTestComplete] = useState(false);
 
+  // Check localStorage on open
+  useEffect(() => {
+    if (isOpen) {
+      const saved = localStorage.getItem("sensei-auth");
+      if (saved === "true") {
+        setPhase("select");
+      } else {
+        setPhase("auth");
+      }
+    }
+  }, [isOpen]);
+
+  // Reset on close
   useEffect(() => {
     if (!isOpen) {
-      // Reset on close
-      setIsAuthenticated(false);
       setPassword("");
       setAuthError("");
-      setSelectedSuiteId(null);
       setSuiteData(null);
+      setSuiteError("");
       setCurrentScenarioIndex(0);
       setUserResponse("");
       setScenarioResults([]);
-      setShowScenarioResult(false);
-      setTestComplete(false);
+      setScoringError("");
+      // Don't reset phase — keep auth state
     }
   }, [isOpen]);
 
@@ -88,17 +139,16 @@ export default function TestSenseiModal({ isOpen, onClose }: TestSenseiModalProp
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ password }),
       });
-
       const data = await res.json();
 
       if (data.success) {
-        setIsAuthenticated(true);
         localStorage.setItem("sensei-auth", "true");
+        setPhase("select");
       } else {
-        setAuthError("Invalid password");
+        setAuthError("Invalid password. Try again.");
       }
-    } catch (error) {
-      setAuthError("Authentication failed");
+    } catch {
+      setAuthError("Connection failed. Please retry.");
     } finally {
       setAuthLoading(false);
     }
@@ -106,13 +156,22 @@ export default function TestSenseiModal({ isOpen, onClose }: TestSenseiModalProp
 
   const loadSuite = async (suiteId: string) => {
     setLoadingSuite(true);
+    setSuiteError("");
     try {
       const res = await fetch(`/api/sensei/suites?id=${suiteId}`);
-      const data = await res.json();
-      setSuiteData(data);
-      setSelectedSuiteId(suiteId);
-    } catch (error) {
-      console.error("Failed to load suite:", error);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data: Suite = await res.json();
+      if (!data.scenarios || data.scenarios.length === 0) {
+        throw new Error("Suite has no scenarios");
+      }
+      // Filter to only scorable scenarios (llm-judge and comparative-judge KPIs)
+      const scorableScenarios = data.scenarios.filter((s) =>
+        s.kpis.some((k) => k.method === "llm-judge" || k.method === "comparative-judge")
+      );
+      setSuiteData({ ...data, scenarios: scorableScenarios });
+      setPhase("info");
+    } catch (err) {
+      setSuiteError(`Failed to load suite: ${err}`);
     } finally {
       setLoadingSuite(false);
     }
@@ -121,38 +180,52 @@ export default function TestSenseiModal({ isOpen, onClose }: TestSenseiModalProp
   const beginTest = () => {
     setCurrentScenarioIndex(0);
     setScenarioResults([]);
-    setTestComplete(false);
+    setUserResponse("");
+    setScoringError("");
+    setPhase("test");
   };
 
   const submitResponse = async () => {
     if (!suiteData || !userResponse.trim()) return;
-
     const currentScenario = suiteData.scenarios[currentScenarioIndex];
     setIsScoring(true);
+    setScoringError("");
 
     try {
+      // Only send LLM-judge KPIs for scoring
+      const judgableKpis = currentScenario.kpis.filter(
+        (k) => k.method === "llm-judge" || k.method === "comparative-judge"
+      );
+
       const res = await fetch("/api/sensei/score", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           scenarioPrompt: currentScenario.input.prompt,
-          kpis: currentScenario.kpis,
+          kpis: judgableKpis,
           userResponse,
         }),
       });
 
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || `Scoring failed (HTTP ${res.status})`);
+      }
+
       const result = await res.json();
 
-      const scenarioResult: ScenarioResult = {
-        scenarioId: currentScenario.id,
-        scores: result.scores,
-        overallScore: result.overallScore,
-      };
-
-      setScenarioResults((prev) => [...prev, scenarioResult]);
-      setShowScenarioResult(true);
-    } catch (error) {
-      console.error("Scoring failed:", error);
+      setScenarioResults((prev) => [
+        ...prev,
+        {
+          scenarioId: currentScenario.id,
+          scores: result.scores || [],
+          overallScore: result.overallScore ?? 0,
+        },
+      ]);
+      setPhase("result");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Scoring failed";
+      setScoringError(message);
     } finally {
       setIsScoring(false);
     }
@@ -160,13 +233,13 @@ export default function TestSenseiModal({ isOpen, onClose }: TestSenseiModalProp
 
   const nextScenario = () => {
     if (!suiteData) return;
-
     if (currentScenarioIndex < suiteData.scenarios.length - 1) {
       setCurrentScenarioIndex((prev) => prev + 1);
       setUserResponse("");
-      setShowScenarioResult(false);
+      setScoringError("");
+      setPhase("test");
     } else {
-      setTestComplete(true);
+      setPhase("report");
     }
   };
 
@@ -177,75 +250,65 @@ export default function TestSenseiModal({ isOpen, onClose }: TestSenseiModalProp
 
     const byLayer: Record<string, { total: number; count: number }> = {};
     let totalScore = 0;
+    let counted = 0;
 
     suiteData.scenarios.forEach((scenario, idx) => {
       const result = scenarioResults[idx];
       if (!result) return;
-
       if (!byLayer[scenario.layer]) {
         byLayer[scenario.layer] = { total: 0, count: 0 };
       }
-
       byLayer[scenario.layer].total += result.overallScore;
       byLayer[scenario.layer].count += 1;
       totalScore += result.overallScore;
+      counted++;
     });
 
-    const overall = totalScore / scenarioResults.length;
-
+    const overall = counted > 0 ? totalScore / counted : 0;
     const layerScores: Record<string, number> = {};
-    Object.keys(byLayer).forEach((layer) => {
-      layerScores[layer] = byLayer[layer].total / byLayer[layer].count;
-    });
+    for (const [layer, data] of Object.entries(byLayer)) {
+      layerScores[layer] = data.count > 0 ? data.total / data.count : 0;
+    }
 
     let badge: Badge = "none";
     if (overall >= 90) badge = "gold";
-    else if (overall >= 80) badge = "silver";
-    else if (overall >= 70) badge = "bronze";
+    else if (overall >= 75) badge = "silver";
+    else if (overall >= 60) badge = "bronze";
 
     return { overall, byLayer: layerScores, badge };
   };
 
   if (!isOpen) return null;
 
-  // Password gate
-  if (!isAuthenticated) {
+  // ── AUTH PHASE ──
+  if (phase === "auth") {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
-        <div className="bg-[#0a0a0a] border border-[#ffffff15] rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl">
+        <div className="bg-[#0a0a0a] border border-[#ffffff15] rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl animate-in fade-in duration-300">
           <h2 className="text-2xl font-bold mb-2 text-center">🥋 Test Sensei</h2>
-          <p className="text-[#e8e4df]/50 text-sm text-center mb-6">Limited Access</p>
+          <p className="text-[#e8e4df]/50 text-sm text-center mb-6">Limited Access — Enter password to continue</p>
 
           <form onSubmit={handleAuth} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-2">Password</label>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-2 bg-[#1a1a1a] border border-[#ffffff15] rounded-lg focus:outline-none focus:border-[#d4a574] text-[#e8e4df]"
-                placeholder="Enter password"
+                className="w-full px-4 py-3 bg-[#1a1a1a] border border-[#ffffff15] rounded-lg focus:outline-none focus:border-[#d4a574] text-[#e8e4df] placeholder-[#e8e4df]/30"
+                placeholder="Password"
                 autoFocus
               />
             </div>
-
-            {authError && (
-              <p className="text-red-400 text-sm">{authError}</p>
-            )}
-
+            {authError && <p className="text-red-400 text-sm text-center">{authError}</p>}
             <div className="flex gap-3">
               <button
                 type="submit"
-                disabled={authLoading}
-                className="flex-1 px-4 py-2 bg-[#d4a574] text-[#0a0a0a] rounded-lg font-semibold hover:bg-[#c9956b] transition-colors disabled:opacity-50"
+                disabled={authLoading || !password}
+                className="flex-1 px-4 py-3 bg-[#d4a574] text-[#0a0a0a] rounded-lg font-semibold hover:bg-[#c9956b] transition-colors disabled:opacity-50"
               >
-                {authLoading ? "Checking..." : "Enter"}
+                {authLoading ? "Verifying..." : "Enter Arena"}
               </button>
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-4 py-2 border border-[#ffffff15] rounded-lg hover:border-[#ffffff30] transition-colors"
-              >
+              <button type="button" onClick={onClose} className="px-4 py-3 border border-[#ffffff15] rounded-lg hover:border-[#ffffff30] transition-colors">
                 Cancel
               </button>
             </div>
@@ -255,20 +318,18 @@ export default function TestSenseiModal({ isOpen, onClose }: TestSenseiModalProp
     );
   }
 
-  // Suite selection
-  if (!selectedSuiteId) {
+  // ── SELECT PHASE ──
+  if (phase === "select") {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
         <div className="bg-[#0a0a0a] border border-[#ffffff15] rounded-2xl p-8 max-w-3xl w-full max-h-[90vh] overflow-y-auto">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold">🥋 Select Test Suite</h2>
-            <button
-              onClick={onClose}
-              className="text-[#e8e4df]/50 hover:text-[#e8e4df] transition-colors"
-            >
-              ✕
-            </button>
+            <h2 className="text-2xl font-bold">🥋 Choose Your Test</h2>
+            <button onClick={onClose} className="text-[#e8e4df]/50 hover:text-[#e8e4df] text-2xl">✕</button>
           </div>
+          <p className="text-[#e8e4df]/50 mb-6">Step into the arena as an AI agent. Pick a role and prove your worth.</p>
+
+          {suiteError && <p className="text-red-400 text-sm mb-4">{suiteError}</p>}
 
           <div className="grid gap-4">
             {SUITES.map((suite) => (
@@ -276,7 +337,7 @@ export default function TestSenseiModal({ isOpen, onClose }: TestSenseiModalProp
                 key={suite.id}
                 onClick={() => loadSuite(suite.id)}
                 disabled={loadingSuite}
-                className="text-left p-5 bg-[#ffffff04] border border-[#ffffff08] rounded-xl hover:border-[#d4a574]/30 transition-all group"
+                className="text-left p-5 bg-[#ffffff04] border border-[#ffffff08] rounded-xl hover:border-[#d4a574]/40 hover:bg-[#ffffff08] transition-all group disabled:opacity-50"
               >
                 <div className="flex items-start gap-4">
                   <span className="text-3xl">{suite.emoji}</span>
@@ -286,17 +347,22 @@ export default function TestSenseiModal({ isOpen, onClose }: TestSenseiModalProp
                     </h3>
                     <p className="text-sm text-[#e8e4df]/50">{suite.desc}</p>
                   </div>
+                  <span className="text-[#e8e4df]/20 group-hover:text-[#d4a574]/50 transition-colors text-xl">→</span>
                 </div>
               </button>
             ))}
           </div>
+
+          {loadingSuite && (
+            <div className="mt-4 text-center text-[#e8e4df]/50 text-sm">Loading suite...</div>
+          )}
         </div>
       </div>
     );
   }
 
-  // Suite info (before test starts)
-  if (suiteData && currentScenarioIndex === 0 && scenarioResults.length === 0) {
+  // ── INFO PHASE ──
+  if (phase === "info" && suiteData) {
     const layerCounts = suiteData.scenarios.reduce((acc, s) => {
       acc[s.layer] = (acc[s.layer] || 0) + 1;
       return acc;
@@ -308,8 +374,8 @@ export default function TestSenseiModal({ isOpen, onClose }: TestSenseiModalProp
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold">{suiteData.name}</h2>
             <button
-              onClick={() => setSelectedSuiteId(null)}
-              className="text-[#e8e4df]/50 hover:text-[#e8e4df] transition-colors"
+              onClick={() => { setSuiteData(null); setPhase("select"); }}
+              className="text-sm text-[#e8e4df]/50 hover:text-[#d4a574] transition-colors"
             >
               ← Back
             </button>
@@ -322,87 +388,263 @@ export default function TestSenseiModal({ isOpen, onClose }: TestSenseiModalProp
               <span className="text-[#e8e4df]/70">Total Scenarios</span>
               <span className="font-bold">{suiteData.scenarios.length}</span>
             </div>
-            <div className="flex items-center justify-between p-3 bg-[#ffffff04] rounded-lg">
-              <span className="text-[#e8e4df]/70">Layers</span>
-              <span className="font-bold">{Object.keys(layerCounts).length}</span>
-            </div>
-            <div className="p-3 bg-[#ffffff04] rounded-lg space-y-2">
-              {Object.entries(layerCounts).map(([layer, count]) => (
-                <div key={layer} className="flex items-center justify-between text-sm">
-                  <span className={LAYER_COLORS[layer as keyof typeof LAYER_COLORS]}>
-                    {LAYER_LABELS[layer as keyof typeof LAYER_LABELS]}
-                  </span>
-                  <span className="text-[#e8e4df]/50">{count} scenarios</span>
-                </div>
-              ))}
-            </div>
+            {Object.entries(layerCounts).map(([layer, count]) => (
+              <div key={layer} className={`flex items-center justify-between p-3 rounded-lg border ${LAYER_BG[layer] || "bg-[#ffffff04]"}`}>
+                <span className={LAYER_COLORS[layer] || "text-[#e8e4df]"}>
+                  {LAYER_LABELS[layer] || layer}
+                </span>
+                <span className="text-[#e8e4df]/60 text-sm">{count} scenario{count > 1 ? "s" : ""}</span>
+              </div>
+            ))}
           </div>
 
           <button
             onClick={beginTest}
-            className="w-full px-6 py-3 bg-[#d4a574] text-[#0a0a0a] rounded-lg font-semibold hover:bg-[#c9956b] transition-colors"
+            className="w-full px-6 py-4 bg-[#d4a574] text-[#0a0a0a] rounded-lg font-bold text-lg hover:bg-[#c9956b] transition-colors"
           >
-            Begin Test
+            Begin Test →
           </button>
         </div>
       </div>
     );
   }
 
-  // Test complete - final report
-  if (testComplete && suiteData) {
+  // ── TEST PHASE ──
+  if (phase === "test" && suiteData) {
+    const currentScenario = suiteData.scenarios[currentScenarioIndex];
+
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+        <div className="bg-[#0a0a0a] border border-[#ffffff15] rounded-2xl p-6 sm:p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+          {/* Progress bar */}
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-[#e8e4df]/50">
+                Scenario {currentScenarioIndex + 1} of {suiteData.scenarios.length}
+              </span>
+              <span className={`text-sm font-medium px-3 py-1 rounded-full border ${LAYER_BG[currentScenario.layer]}`}>
+                <span className={LAYER_COLORS[currentScenario.layer]}>
+                  {LAYER_LABELS[currentScenario.layer]}
+                </span>
+              </span>
+            </div>
+            <div className="h-1.5 bg-[#1a1a1a] rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-[#d4a574] to-[#c9956b] transition-all duration-500"
+                style={{ width: `${((currentScenarioIndex + 1) / suiteData.scenarios.length) * 100}%` }}
+              />
+            </div>
+          </div>
+
+          <h3 className="text-xl font-bold mb-2">{currentScenario.name}</h3>
+          {currentScenario.description && (
+            <p className="text-[#e8e4df]/50 text-sm mb-4">{currentScenario.description}</p>
+          )}
+
+          {/* Scenario prompt */}
+          <div className="p-4 bg-[#ffffff06] border border-[#ffffff10] rounded-xl mb-5">
+            <p className="text-xs uppercase tracking-wider text-[#d4a574] mb-2 font-semibold">Scenario Prompt</p>
+            <div className="text-[#e8e4df]/90 whitespace-pre-wrap leading-relaxed text-sm max-h-64 overflow-y-auto">
+              {currentScenario.input.prompt}
+            </div>
+            {currentScenario.input.feedback && (
+              <div className="mt-3 pt-3 border-t border-[#ffffff10]">
+                <p className="text-xs uppercase tracking-wider text-green-400 mb-1 font-semibold">Feedback to Address</p>
+                <div className="text-[#e8e4df]/80 whitespace-pre-wrap text-sm">
+                  {currentScenario.input.feedback}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* KPIs being evaluated */}
+          <div className="mb-5">
+            <p className="text-xs uppercase tracking-wider text-[#e8e4df]/40 mb-2 font-semibold">Evaluated On</p>
+            <div className="flex flex-wrap gap-2">
+              {currentScenario.kpis
+                .filter((k) => k.method === "llm-judge" || k.method === "comparative-judge")
+                .map((kpi) => (
+                  <span key={kpi.id} className="text-xs px-3 py-1.5 bg-[#ffffff08] border border-[#ffffff10] rounded-full text-[#e8e4df]/70">
+                    {kpi.name} <span className="text-[#e8e4df]/30">({(kpi.weight * 100).toFixed(0)}%)</span>
+                  </span>
+                ))}
+            </div>
+          </div>
+
+          {/* Response textarea */}
+          <div className="mb-4">
+            <textarea
+              value={userResponse}
+              onChange={(e) => setUserResponse(e.target.value)}
+              className="w-full h-48 px-4 py-3 bg-[#1a1a1a] border border-[#ffffff15] rounded-lg focus:outline-none focus:border-[#d4a574] focus:ring-1 focus:ring-[#d4a574]/30 text-[#e8e4df] resize-none placeholder-[#e8e4df]/20 text-sm"
+              placeholder="Type your response as an AI agent would..."
+              autoFocus
+            />
+            <div className="flex justify-between mt-1">
+              <span className="text-xs text-[#e8e4df]/30">
+                {userResponse.split(/\s+/).filter(Boolean).length} words
+              </span>
+              {scoringError && <span className="text-xs text-red-400">{scoringError}</span>}
+            </div>
+          </div>
+
+          <button
+            onClick={submitResponse}
+            disabled={isScoring || !userResponse.trim()}
+            className="w-full px-6 py-3 bg-[#d4a574] text-[#0a0a0a] rounded-lg font-semibold hover:bg-[#c9956b] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isScoring ? (
+              <span className="flex items-center justify-center gap-2">
+                <span className="inline-block w-4 h-4 border-2 border-[#0a0a0a]/30 border-t-[#0a0a0a] rounded-full animate-spin" />
+                Sensei is evaluating...
+              </span>
+            ) : (
+              "Submit Response"
+            )}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── RESULT PHASE (per-scenario) ──
+  if (phase === "result" && suiteData) {
+    const currentScenario = suiteData.scenarios[currentScenarioIndex];
+    const currentResult = scenarioResults[scenarioResults.length - 1];
+
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+        <div className="bg-[#0a0a0a] border border-[#ffffff15] rounded-2xl p-6 sm:p-8 max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-sm text-[#e8e4df]/50">
+                Scenario {currentScenarioIndex + 1} of {suiteData.scenarios.length}
+              </span>
+              <span className={`text-sm ${LAYER_COLORS[currentScenario.layer]}`}>
+                {LAYER_LABELS[currentScenario.layer]}
+              </span>
+            </div>
+            <h3 className="text-xl font-bold">{currentScenario.name}</h3>
+          </div>
+
+          {/* Overall scenario score */}
+          <div className="p-5 bg-[#ffffff06] border border-[#ffffff10] rounded-xl mb-6 text-center">
+            <p className="text-sm text-[#e8e4df]/50 mb-1">Scenario Score</p>
+            <p className="text-4xl font-bold text-[#d4a574]">
+              {currentResult?.overallScore?.toFixed(1) ?? "0"}
+              <span className="text-xl text-[#e8e4df]/30">/100</span>
+            </p>
+          </div>
+
+          {/* KPI breakdown */}
+          <div className="space-y-3 mb-6">
+            {currentResult?.scores?.map((score) => (
+              <div key={score.kpiId} className="p-4 bg-[#ffffff04] border border-[#ffffff08] rounded-xl">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-medium text-sm">{score.kpiName}</span>
+                  <span className="text-[#d4a574] font-bold">
+                    {score.score}<span className="text-[#e8e4df]/40">/{score.maxScore}</span>
+                  </span>
+                </div>
+                <div className="h-1.5 bg-[#1a1a1a] rounded-full overflow-hidden mb-2">
+                  <div
+                    className="h-full bg-gradient-to-r from-[#d4a574] to-[#c9956b] transition-all duration-700"
+                    style={{ width: `${(score.score / score.maxScore) * 100}%` }}
+                  />
+                </div>
+                <p className="text-xs text-[#e8e4df]/50 leading-relaxed">{score.reasoning}</p>
+              </div>
+            ))}
+          </div>
+
+          <button
+            onClick={nextScenario}
+            className="w-full px-6 py-3 bg-[#d4a574] text-[#0a0a0a] rounded-lg font-semibold hover:bg-[#c9956b] transition-colors"
+          >
+            {currentScenarioIndex < suiteData.scenarios.length - 1
+              ? "Next Scenario →"
+              : "View Final Report 🏆"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── REPORT PHASE ──
+  if (phase === "report" && suiteData) {
     const { overall, byLayer, badge } = calculateFinalScores();
-    const badgeEmoji = { gold: "🥇", silver: "🥈", bronze: "🥉", none: "—" }[badge];
-    const badgeLabel = badge.charAt(0).toUpperCase() + badge.slice(1);
+    const badgeEmoji = { gold: "🥇", silver: "🥈", bronze: "🥉", none: "😔" }[badge];
+    const badgeLabel = badge === "none" ? "No Badge" : badge.charAt(0).toUpperCase() + badge.slice(1);
+    const badgeColor = { gold: "text-yellow-400", silver: "text-gray-300", bronze: "text-orange-400", none: "text-[#e8e4df]/50" }[badge];
 
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
         <div className="bg-[#0a0a0a] border border-[#ffffff15] rounded-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
           <div className="text-center mb-8">
-            <div className="text-6xl mb-4">{badgeEmoji}</div>
+            <div className="text-7xl mb-4">{badgeEmoji}</div>
             <h2 className="text-3xl font-bold mb-2">Test Complete</h2>
-            <p className="text-[#d4a574] text-xl font-semibold">{badgeLabel} Badge</p>
+            <p className={`text-xl font-semibold ${badgeColor}`}>{badgeLabel}</p>
           </div>
 
-          <div className="space-y-4 mb-8">
-            <div className="p-4 bg-[#ffffff04] rounded-xl border border-[#ffffff08]">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[#e8e4df]/70">Overall Score</span>
-                <span className="text-2xl font-bold text-[#d4a574]">
-                  {overall.toFixed(1)}<span className="text-lg text-[#e8e4df]/50">/100</span>
-                </span>
-              </div>
-            </div>
+          {/* Overall score */}
+          <div className="p-5 bg-[#ffffff06] border border-[#ffffff10] rounded-xl mb-6 text-center">
+            <p className="text-sm text-[#e8e4df]/50 mb-1">Overall Score</p>
+            <p className="text-5xl font-bold text-[#d4a574]">
+              {overall.toFixed(1)}<span className="text-2xl text-[#e8e4df]/30">/100</span>
+            </p>
+          </div>
 
+          {/* Layer scores */}
+          <div className="space-y-3 mb-8">
             {Object.entries(byLayer).map(([layer, score]) => (
-              <div key={layer} className="p-4 bg-[#ffffff04] rounded-xl">
-                <div className="flex items-center justify-between">
-                  <span className={LAYER_COLORS[layer as keyof typeof LAYER_COLORS]}>
-                    {LAYER_LABELS[layer as keyof typeof LAYER_LABELS]}
+              <div key={layer} className={`p-4 rounded-xl border ${LAYER_BG[layer] || "bg-[#ffffff04]"}`}>
+                <div className="flex items-center justify-between mb-2">
+                  <span className={LAYER_COLORS[layer]}>
+                    {LAYER_LABELS[layer] || layer}
                   </span>
                   <span className="font-bold">{score.toFixed(1)}</span>
                 </div>
-                <div className="mt-2 h-2 bg-[#1a1a1a] rounded-full overflow-hidden">
+                <div className="h-2 bg-[#0a0a0a]/50 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-gradient-to-r from-[#d4a574] to-[#c9956b]"
-                    style={{ width: `${score}%` }}
+                    className="h-full bg-gradient-to-r from-[#d4a574] to-[#c9956b] transition-all duration-1000"
+                    style={{ width: `${Math.min(score, 100)}%` }}
                   />
                 </div>
               </div>
             ))}
           </div>
 
+          {/* Per-scenario breakdown */}
+          <div className="mb-8">
+            <p className="text-sm text-[#e8e4df]/50 mb-3 font-semibold">Scenario Breakdown</p>
+            <div className="space-y-2">
+              {suiteData.scenarios.map((s, idx) => {
+                const r = scenarioResults[idx];
+                return (
+                  <div key={s.id} className="flex items-center justify-between p-3 bg-[#ffffff04] rounded-lg text-sm">
+                    <div className="flex items-center gap-2">
+                      <span className={`text-xs ${LAYER_COLORS[s.layer]}`}>●</span>
+                      <span className="text-[#e8e4df]/70">{s.name}</span>
+                    </div>
+                    <span className="font-medium">{r?.overallScore?.toFixed(1) ?? "—"}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
           <div className="flex gap-3">
             <button
               onClick={() => {
-                setTestComplete(false);
                 setScenarioResults([]);
                 setCurrentScenarioIndex(0);
                 setUserResponse("");
+                setPhase("select");
+                setSuiteData(null);
               }}
               className="flex-1 px-6 py-3 border border-[#ffffff15] rounded-lg hover:border-[#d4a574]/50 transition-colors"
             >
-              Retake Test
+              Try Another Suite
             </button>
             <button
               onClick={onClose}
@@ -411,120 +653,6 @@ export default function TestSenseiModal({ isOpen, onClose }: TestSenseiModalProp
               Close
             </button>
           </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Testing flow - scenario by scenario
-  if (suiteData && !testComplete) {
-    const currentScenario = suiteData.scenarios[currentScenarioIndex];
-    const currentResult = scenarioResults[currentScenarioIndex];
-
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-        <div className="bg-[#0a0a0a] border border-[#ffffff15] rounded-2xl p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-          {/* Progress */}
-          <div className="mb-6">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-[#e8e4df]/50">
-                Scenario {currentScenarioIndex + 1} of {suiteData.scenarios.length}
-              </span>
-              <span className={`text-sm font-medium ${LAYER_COLORS[currentScenario.layer]}`}>
-                {LAYER_LABELS[currentScenario.layer]}
-              </span>
-            </div>
-            <div className="h-1 bg-[#1a1a1a] rounded-full overflow-hidden">
-              <div
-                className="h-full bg-[#d4a574]"
-                style={{
-                  width: `${((currentScenarioIndex + 1) / suiteData.scenarios.length) * 100}%`,
-                }}
-              />
-            </div>
-          </div>
-
-          {!showScenarioResult ? (
-            <>
-              <h3 className="text-xl font-bold mb-3">{currentScenario.name}</h3>
-              <p className="text-[#e8e4df]/60 text-sm mb-6">{currentScenario.description}</p>
-
-              <div className="p-4 bg-[#ffffff04] rounded-xl mb-6">
-                <p className="text-sm text-[#e8e4df]/70 font-medium mb-2">Scenario Prompt:</p>
-                <p className="text-[#e8e4df]/90 whitespace-pre-wrap leading-relaxed">
-                  {currentScenario.input.prompt}
-                </p>
-              </div>
-
-              <div className="mb-6">
-                <p className="text-sm font-medium mb-3">KPIs Being Evaluated:</p>
-                <div className="grid gap-2">
-                  {currentScenario.kpis.map((kpi) => (
-                    <div key={kpi.id} className="flex items-center justify-between p-3 bg-[#ffffff04] rounded-lg text-sm">
-                      <span className="text-[#e8e4df]/80">{kpi.name}</span>
-                      <span className="text-[#e8e4df]/40">Weight: {(kpi.weight * 100).toFixed(0)}%</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="mb-6">
-                <label className="block text-sm font-medium mb-2">Your Response:</label>
-                <textarea
-                  value={userResponse}
-                  onChange={(e) => setUserResponse(e.target.value)}
-                  className="w-full h-48 px-4 py-3 bg-[#1a1a1a] border border-[#ffffff15] rounded-lg focus:outline-none focus:border-[#d4a574] text-[#e8e4df] resize-none"
-                  placeholder="Type your response here..."
-                />
-              </div>
-
-              <button
-                onClick={submitResponse}
-                disabled={isScoring || !userResponse.trim()}
-                className="w-full px-6 py-3 bg-[#d4a574] text-[#0a0a0a] rounded-lg font-semibold hover:bg-[#c9956b] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isScoring ? "Scoring..." : "Submit Response"}
-              </button>
-            </>
-          ) : (
-            <>
-              <h3 className="text-xl font-bold mb-6">Scenario Results</h3>
-
-              <div className="p-4 bg-[#ffffff04] rounded-xl mb-6">
-                <div className="flex items-center justify-between">
-                  <span className="text-[#e8e4df]/70">Overall Score</span>
-                  <span className="text-2xl font-bold text-[#d4a574]">
-                    {currentResult.overallScore.toFixed(1)}<span className="text-lg text-[#e8e4df]/50">/100</span>
-                  </span>
-                </div>
-              </div>
-
-              <div className="space-y-4 mb-6">
-                {currentResult.scores.map((score) => (
-                  <div key={score.kpiId} className="p-4 bg-[#ffffff04] rounded-xl">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium">{score.kpiName}</span>
-                      <span className="text-[#d4a574]">
-                        {score.score}/{score.maxScore}
-                      </span>
-                    </div>
-                    <p className="text-sm text-[#e8e4df]/60 leading-relaxed">
-                      {score.reasoning}
-                    </p>
-                  </div>
-                ))}
-              </div>
-
-              <button
-                onClick={nextScenario}
-                className="w-full px-6 py-3 bg-[#d4a574] text-[#0a0a0a] rounded-lg font-semibold hover:bg-[#c9956b] transition-colors"
-              >
-                {currentScenarioIndex < suiteData.scenarios.length - 1
-                  ? "Next Scenario →"
-                  : "View Final Report"}
-              </button>
-            </>
-          )}
         </div>
       </div>
     );
