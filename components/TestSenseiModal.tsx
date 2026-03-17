@@ -63,6 +63,7 @@ const SUITES = [
   { id: "content", label: "Content Writer", emoji: "✍️", desc: "Blog posts, LinkedIn threads, product launch emails" },
   { id: "bartender", label: "Bartender", emoji: "🍸", desc: "Cocktail crafting, drunk customers, chaotic group orders (Fun)" },
   { id: "dungeon-master", label: "Dungeon Master", emoji: "🎲", desc: "Tavern scenes, creative combat, chaotic players (Fun)" },
+  { id: "cat-interview", label: "Cat Interview", emoji: "🐱", desc: "Job interview for Senior Napping Engineer at MeowCorp (Fun)" },
 ];
 
 const LAYER_COLORS: Record<string, string> = {

@@ -43,6 +43,7 @@ const SUITE_MAPPING: Record<string, string> = {
   'content': 'content-writer.yaml',
   'bartender': 'bartender.yaml',
   'dungeon-master': 'dungeon-master.yaml',
+  'cat-interview': 'cat-interview.yaml',
 };
 
 export async function GET(request: Request) {
