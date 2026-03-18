@@ -13,6 +13,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://sensei.sh"),
   title: "Sensei — AI Agent Qualification Engine",
   description:
     "The open-source qualification engine for AI agents. Test. Evaluate. Certify.",
@@ -22,6 +23,7 @@ export const metadata: Metadata = {
       "Test. Evaluate. Certify. Before you hire an agent, ask the Sensei.",
     type: "website",
     siteName: "Sensei",
+    url: "https://sensei.sh",
   },
   twitter: {
     card: "summary_large_image",
