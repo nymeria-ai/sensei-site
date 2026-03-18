@@ -21,6 +21,13 @@ export const metadata: Metadata = {
     description:
       "Test. Evaluate. Certify. Before you hire an agent, ask the Sensei.",
     type: "website",
+    siteName: "Sensei",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Sensei — AI Agent Qualification Engine",
+    description:
+      "Test. Evaluate. Certify. Before you hire an agent, ask the Sensei.",
   },
 };
 
