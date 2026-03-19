@@ -488,38 +488,41 @@ const SUITES = [
   {
     icon: "📞",
     name: "SDR",
-    scenarios: 12,
-    desc: "Cold outreach, email personalization, call analysis, and pipeline qualification",
+    scenarios: 5,
+    desc: "Cold outreach, email personalization, discovery call analysis, and pipeline qualification",
   },
   {
     icon: "🎧",
-    name: "Support",
-    scenarios: 15,
-    desc: "Ticket resolution, multi-turn conversations, escalation handling, CSAT optimization",
+    name: "Customer Support",
+    scenarios: 5,
+    desc: "Ticket resolution, de-escalation, multi-issue handling, and reasoning about approach",
   },
   {
     icon: "✍️",
     name: "Content Writer",
-    scenarios: 10,
-    desc: "Blog posts, social copy, SEO optimization, brand voice consistency",
+    scenarios: 5,
+    desc: "Blog posts, LinkedIn threads, product launch emails, and editorial adaptation",
   },
   {
-    icon: "🧪",
-    name: "QA Engineer",
-    scenarios: 14,
-    desc: "Test case generation, bug reporting, regression analysis, coverage assessment",
+    icon: "🍸",
+    name: "Bartender",
+    scenarios: 5,
+    desc: "Cocktail crafting, drunk customer handling, chaotic group orders, and allergy awareness",
+    tag: "Fun",
   },
   {
-    icon: "📊",
-    name: "Data Analyst",
-    scenarios: 11,
-    desc: "SQL generation, insight extraction, visualization recommendations, anomaly detection",
+    icon: "🎲",
+    name: "Dungeon Master",
+    scenarios: 5,
+    desc: "Tavern scenes, creative combat, player management, and chaotic party handling",
+    tag: "Fun",
   },
   {
-    icon: "💻",
-    name: "Developer",
-    scenarios: 16,
-    desc: "Code generation, refactoring, PR review, documentation, debugging",
+    icon: "🐱",
+    name: "Cat Interview",
+    scenarios: 3,
+    desc: "Job interview for Senior Napping Engineer at MeowCorp — stay in character",
+    tag: "Fun",
   },
 ];
 
@@ -767,7 +770,7 @@ export default function Home() {
               Built-In Test Suites
             </h2>
             <p className="text-[#e8e4df]/50 max-w-xl mx-auto">
-              Battle-tested evaluation suites for the most common agent roles.
+              Battle-tested evaluation suites for professional and fun agent roles.
               Create your own in minutes.
             </p>
           </div>
@@ -784,7 +787,14 @@ export default function Home() {
                     {suite.scenarios} scenarios
                   </span>
                 </div>
-                <h3 className="text-lg font-bold mb-2">{suite.name}</h3>
+                <div className="flex items-center gap-2 mb-2">
+                  <h3 className="text-lg font-bold">{suite.name}</h3>
+                  {"tag" in suite && suite.tag && (
+                    <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-purple-500/15 border border-purple-500/25 text-purple-300">
+                      🎮 {suite.tag}
+                    </span>
+                  )}
+                </div>
                 <p className="text-[#e8e4df]/40 text-sm leading-relaxed">
                   {suite.desc}
                 </p>
