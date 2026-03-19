@@ -566,7 +566,7 @@ export default function Home() {
 
           <div className="flex flex-wrap justify-center gap-4">
             <a
-              href="https://github.com/nymeria-ai/sensei"
+              href="https://github.com/mondaycom/sensei"
               target="_blank"
               rel="noopener noreferrer"
               className="px-8 py-3.5 bg-[#d4a574] text-[#0a0a0a] rounded-lg font-semibold text-sm tracking-wide hover:bg-[#c9956b] transition-colors duration-300"
@@ -574,7 +574,7 @@ export default function Home() {
               View on GitHub
             </a>
             <a
-              href="https://github.com/nymeria-ai/sensei#readme"
+              href="https://github.com/mondaycom/sensei#readme"
               target="_blank"
               rel="noopener noreferrer"
               className="px-8 py-3.5 border border-[#e8e4df]/20 rounded-lg font-semibold text-sm tracking-wide text-[#e8e4df]/80 hover:border-[#d4a574]/50 hover:text-[#d4a574] transition-all duration-300"
@@ -830,7 +830,7 @@ export default function Home() {
                   <span className="text-[#e8e4df]">{" } "}</span>
                   <span className="text-[#c792ea]">from</span>
                   <span className="text-[#c3e88d]">
-                    {" '"}@sensei/engine{"'"}
+                    {" '"}@mondaycom/sensei-engine{"'"}
                   </span>
                   <span className="text-[#e8e4df]">;</span>
                 </div>
@@ -891,7 +891,7 @@ export default function Home() {
           </p>
           <div className="flex justify-center gap-6 text-sm text-[#e8e4df]/30">
             <a
-              href="https://github.com/nymeria-ai/sensei"
+              href="https://github.com/mondaycom/sensei"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-[#d4a574] transition-colors"
@@ -902,7 +902,7 @@ export default function Home() {
             <span>MIT License</span>
             <span>·</span>
             <a
-              href="https://github.com/nymeria-ai/sensei#readme"
+              href="https://github.com/mondaycom/sensei#readme"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-[#d4a574] transition-colors"
