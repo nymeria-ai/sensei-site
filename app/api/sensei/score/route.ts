@@ -2,11 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Judge, Scorer } from '@mondaycom/sensei-engine';
 import type { KPIDefinition, ScenarioInput, JudgeConfig } from '@mondaycom/sensei-engine';
 
-const judgeConfig: JudgeConfig = {
-  provider: 'openai',
-  model: 'gpt-4o-mini',
-  temperature: 0.3,
-};
+function getJudgeConfig(): JudgeConfig {
+  return {
+    provider: 'openai',
+    model: 'gpt-4o-mini',
+    temperature: 0.3,
+    api_key: process.env.OPENAI_API_KEY,
+  };
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,7 +22,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const judge = new Judge(judgeConfig);
+    const judge = new Judge(getJudgeConfig());
     const scorer = new Scorer();
 
     try {
