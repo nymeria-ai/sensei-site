@@ -33,7 +33,10 @@ export async function POST(request: NextRequest) {
         const response = await openai.chat.completions.create({
           model: 'gpt-4o-mini',
           temperature: 0.3,
-          messages: [{ role: 'user', content: prompt }] as any,
+          messages: [
+            { role: 'system', content: prompt.system },
+            { role: 'user', content: prompt.user },
+          ] as any,
         });
 
         const content = response.choices[0]?.message?.content ?? '';
