@@ -67,8 +67,9 @@ export async function POST(request: NextRequest) {
     }
   } catch (error) {
     console.error('Scoring error:', error);
+    const message = error instanceof Error ? error.message : String(error);
     return NextResponse.json(
-      { error: 'Failed to score response' },
+      { error: 'Failed to score response', detail: message },
       { status: 500 }
     );
   }
