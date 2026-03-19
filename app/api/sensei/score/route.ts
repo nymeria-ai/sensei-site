@@ -1,17 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import OpenAI from 'openai';
+import { Judge, Scorer } from '@mondaycom/sensei-engine';
+import type { KPIDefinition, ScenarioInput, JudgeConfig } from '@mondaycom/sensei-engine';
 
-function getOpenAI() {
-  return new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-}
-
-interface KPIScore {
-  kpiId: string;
-  kpiName: string;
-  score: number;
-  maxScore: number;
-  reasoning: string;
-}
+const judgeConfig: JudgeConfig = {
+  provider: 'openai',
+  model: 'gpt-4o-mini',
+  temperature: 0.3,
+};
 
 export async function POST(request: NextRequest) {
   try {
@@ -24,73 +19,52 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const scores: KPIScore[] = [];
+    const judge = new Judge(judgeConfig);
+    const scorer = new Scorer();
 
-    // Score each KPI
-    for (const kpi of kpis) {
-      const judgePrompt = `You are evaluating an AI agent's response against a specific KPI.
+    try {
+      const scenarioInput: ScenarioInput = { prompt: scenarioPrompt };
 
-**Scenario Prompt:**
-${scenarioPrompt}
+      // Score each KPI using the engine's Judge
+      const kpiResults = await Promise.all(
+        kpis.map(async (kpi: KPIDefinition) => {
+          const verdict = await judge.evaluate({
+            kpi,
+            scenarioInput,
+            agentOutput: userResponse,
+          });
 
-**Agent's Response:**
-${userResponse}
+          return {
+            kpi_id: kpi.id,
+            kpi_name: kpi.name,
+            score: (verdict.score / verdict.max_score) * 100,
+            raw_score: verdict.score,
+            max_score: verdict.max_score,
+            weight: kpi.weight,
+            method: kpi.method,
+            evidence: verdict.reasoning,
+          };
+        })
+      );
 
-**KPI to Evaluate:** ${kpi.name}
-**Maximum Score:** ${kpi.config.max_score || 5}
+      const overallScore = scorer.calculateScenarioScore(kpiResults);
 
-**Rubric:**
-${kpi.config.rubric || 'Evaluate based on quality, relevance, and completeness.'}
+      // Map to the response shape the modal expects
+      const scores = kpiResults.map((r) => ({
+        kpiId: r.kpi_id,
+        kpiName: r.kpi_name,
+        score: r.raw_score,
+        maxScore: r.max_score,
+        reasoning: r.evidence,
+      }));
 
-**Instructions:**
-1. Evaluate the response based on the rubric
-2. Assign a score from 0 to ${kpi.config.max_score || 5}
-3. Provide brief reasoning (2-3 sentences max)
-
-Respond in JSON format:
-{
-  "score": <number>,
-  "reasoning": "<brief explanation>"
-}`;
-
-      const completion = await getOpenAI().chat.completions.create({
-        model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are a precise evaluator. Always respond with valid JSON.',
-          },
-          {
-            role: 'user',
-            content: judgePrompt,
-          },
-        ],
-        response_format: { type: 'json_object' },
-        temperature: 0.3,
+      return NextResponse.json({
+        scores,
+        overallScore: Math.round(overallScore * 10) / 10,
       });
-
-      const result = JSON.parse(completion.choices[0].message.content || '{}');
-
-      scores.push({
-        kpiId: kpi.id,
-        kpiName: kpi.name,
-        score: result.score,
-        maxScore: kpi.config.max_score || 5,
-        reasoning: result.reasoning,
-      });
+    } finally {
+      judge.dispose();
     }
-
-    // Calculate weighted average
-    const totalWeight = kpis.reduce((sum: number, kpi: any) => sum + kpi.weight, 0);
-    const weightedScore = scores.reduce((sum, score, idx) => {
-      const normalizedScore = (score.score / score.maxScore) * 100;
-      return sum + normalizedScore * kpis[idx].weight;
-    }, 0) / totalWeight;
-
-    return NextResponse.json({
-      scores,
-      overallScore: Math.round(weightedScore * 10) / 10,
-    });
   } catch (error) {
     console.error('Scoring error:', error);
     return NextResponse.json(
