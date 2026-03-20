@@ -107,9 +107,9 @@ export default function TestSenseiModal({ isOpen, onClose, preloadSuiteId }: Tes
   useEffect(() => {
     if (isOpen) {
       if (preloadSuiteId) {
-        // Skip auth+select, go straight to loading the suite
+        // Skip auth+select entirely — go straight to loading
         localStorage.setItem("sensei-auth", "true");
-        setPhase("select"); // Will immediately trigger loadSuite below
+        setLoadingSuite(true);
         loadSuite(preloadSuiteId);
       } else {
         const saved = localStorage.getItem("sensei-auth");
@@ -288,6 +288,27 @@ export default function TestSenseiModal({ isOpen, onClose, preloadSuiteId }: Tes
   };
 
   if (!isOpen) return null;
+
+  // ── LOADING PHASE (preloaded suite) ──
+  if (loadingSuite && !suiteData) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+        <div className="bg-[#0a0a0a] border border-[#ffffff15] rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl text-center">
+          <div className="text-5xl mb-4 animate-pulse">🥋</div>
+          <h2 className="text-xl font-bold mb-2">Loading Suite...</h2>
+          <p className="text-[#e8e4df]/50 text-sm">Preparing your test</p>
+          {suiteError && (
+            <div className="mt-4">
+              <p className="text-red-400 text-sm mb-3">{suiteError}</p>
+              <button onClick={onClose} className="px-4 py-2 border border-[#ffffff15] rounded-lg hover:border-[#ffffff30] transition-colors text-sm">
+                Close
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   // ── AUTH PHASE ──
   if (phase === "auth") {
