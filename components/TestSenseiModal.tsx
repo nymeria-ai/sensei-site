@@ -38,11 +38,11 @@ interface Suite {
 interface TestSenseiModalProps {
   isOpen: boolean;
   onClose: () => void;
-  preloadSuiteId?: string; // Skip auth+select, go straight to loading this suite
+  preloadSuiteId?: string; // Skip select, go straight to loading this suite
 }
 
 type Badge = "gold" | "silver" | "bronze" | "none";
-type Phase = "auth" | "select" | "info" | "test" | "result" | "report";
+type Phase = "select" | "loading" | "info" | "test" | "result" | "report";
 
 interface KPIScore {
   kpiId: string;
@@ -86,10 +86,7 @@ const LAYER_LABELS: Record<string, string> = {
 };
 
 export default function TestSenseiModal({ isOpen, onClose, preloadSuiteId }: TestSenseiModalProps) {
-  const [phase, setPhase] = useState<Phase>("auth");
-  const [password, setPassword] = useState("");
-  const [authError, setAuthError] = useState("");
-  const [authLoading, setAuthLoading] = useState(false);
+  const [phase, setPhase] = useState<Phase>("select");
 
   // Suite
   const [suiteData, setSuiteData] = useState<Suite | null>(null);
@@ -103,21 +100,14 @@ export default function TestSenseiModal({ isOpen, onClose, preloadSuiteId }: Tes
   const [scoringError, setScoringError] = useState("");
   const [scenarioResults, setScenarioResults] = useState<ScenarioResult[]>([]);
 
-  // Check localStorage on open, or auto-load preloaded suite
+  // On open: if preloadSuiteId, skip select and load directly
   useEffect(() => {
     if (isOpen) {
       if (preloadSuiteId) {
-        // Skip auth+select entirely — go straight to loading
-        localStorage.setItem("sensei-auth", "true");
-        setLoadingSuite(true);
+        setPhase("loading");
         loadSuite(preloadSuiteId);
       } else {
-        const saved = localStorage.getItem("sensei-auth");
-        if (saved === "true") {
-          setPhase("select");
-        } else {
-          setPhase("auth");
-        }
+        setPhase("select");
       }
     }
   }, [isOpen, preloadSuiteId]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -125,49 +115,22 @@ export default function TestSenseiModal({ isOpen, onClose, preloadSuiteId }: Tes
   // Reset on close
   useEffect(() => {
     if (!isOpen) {
-      setPassword("");
-      setAuthError("");
       setSuiteData(null);
       setSuiteError("");
       setCurrentScenarioIndex(0);
       setUserResponse("");
       setScenarioResults([]);
       setScoringError("");
-      // Don't reset phase — keep auth state
+      setLoadingSuite(false);
     }
   }, [isOpen]);
-
-  const handleAuth = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setAuthLoading(true);
-    setAuthError("");
-
-    try {
-      const res = await fetch("/api/sensei/auth", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password }),
-      });
-      const data = await res.json();
-
-      if (data.success) {
-        localStorage.setItem("sensei-auth", "true");
-        setPhase("select");
-      } else {
-        setAuthError("Invalid password. Try again.");
-      }
-    } catch {
-      setAuthError("Connection failed. Please retry.");
-    } finally {
-      setAuthLoading(false);
-    }
-  };
 
   const loadSuite = async (suiteId: string) => {
     setLoadingSuite(true);
     setSuiteError("");
+    setPhase("loading");
     try {
-      const res = await fetch(`/api/sensei/suites?id=${suiteId}`);
+      const res = await fetch(`/api/sensei/suites?id=${encodeURIComponent(suiteId)}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data: Suite = await res.json();
       if (!data.scenarios || data.scenarios.length === 0) {
@@ -177,10 +140,14 @@ export default function TestSenseiModal({ isOpen, onClose, preloadSuiteId }: Tes
       const scorableScenarios = data.scenarios.filter((s) =>
         s.kpis.some((k) => k.method === "llm-judge" || k.method === "comparative-judge")
       );
+      if (scorableScenarios.length === 0) {
+        throw new Error("Suite has no scorable scenarios (needs llm-judge KPIs)");
+      }
       setSuiteData({ ...data, scenarios: scorableScenarios });
       setPhase("info");
     } catch (err) {
       setSuiteError(`Failed to load suite: ${err}`);
+      // Stay on loading phase to show error — don't fall through to select
     } finally {
       setLoadingSuite(false);
     }
@@ -289,60 +256,40 @@ export default function TestSenseiModal({ isOpen, onClose, preloadSuiteId }: Tes
 
   if (!isOpen) return null;
 
-  // ── LOADING PHASE (preloaded suite) ──
-  if (loadingSuite && !suiteData) {
+  // ── LOADING PHASE ──
+  if (phase === "loading") {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
         <div className="bg-[#0a0a0a] border border-[#ffffff15] rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl text-center">
-          <div className="text-5xl mb-4 animate-pulse">🥋</div>
-          <h2 className="text-xl font-bold mb-2">Loading Suite...</h2>
-          <p className="text-[#e8e4df]/50 text-sm">Preparing your test</p>
-          {suiteError && (
-            <div className="mt-4">
-              <p className="text-red-400 text-sm mb-3">{suiteError}</p>
-              <button onClick={onClose} className="px-4 py-2 border border-[#ffffff15] rounded-lg hover:border-[#ffffff30] transition-colors text-sm">
-                Close
-              </button>
-            </div>
+          {suiteError ? (
+            <>
+              <div className="text-5xl mb-4">⚠️</div>
+              <h2 className="text-xl font-bold mb-2">Failed to Load Suite</h2>
+              <p className="text-red-400 text-sm mb-6">{suiteError}</p>
+              <div className="flex gap-3 justify-center">
+                {!preloadSuiteId && (
+                  <button
+                    onClick={() => { setSuiteError(""); setPhase("select"); }}
+                    className="px-4 py-2 border border-[#ffffff15] rounded-lg hover:border-[#ffffff30] transition-colors text-sm"
+                  >
+                    ← Back to Suites
+                  </button>
+                )}
+                <button
+                  onClick={onClose}
+                  className="px-4 py-2 border border-[#ffffff15] rounded-lg hover:border-[#ffffff30] transition-colors text-sm"
+                >
+                  Close
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="text-5xl mb-4 animate-pulse">🥋</div>
+              <h2 className="text-xl font-bold mb-2">Loading Suite...</h2>
+              <p className="text-[#e8e4df]/50 text-sm">Preparing your test</p>
+            </>
           )}
-        </div>
-      </div>
-    );
-  }
-
-  // ── AUTH PHASE ──
-  if (phase === "auth") {
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
-        <div className="bg-[#0a0a0a] border border-[#ffffff15] rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl animate-in fade-in duration-300">
-          <h2 className="text-2xl font-bold mb-2 text-center">🥋 Test Sensei</h2>
-          <p className="text-[#e8e4df]/50 text-sm text-center mb-6">Limited Access — Enter password to continue</p>
-
-          <form onSubmit={handleAuth} className="space-y-4">
-            <div>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 bg-[#1a1a1a] border border-[#ffffff15] rounded-lg focus:outline-none focus:border-[#d4a574] text-[#e8e4df] placeholder-[#e8e4df]/30"
-                placeholder="Password"
-                autoFocus
-              />
-            </div>
-            {authError && <p className="text-red-400 text-sm text-center">{authError}</p>}
-            <div className="flex gap-3">
-              <button
-                type="submit"
-                disabled={authLoading || !password}
-                className="flex-1 px-4 py-3 bg-[#d4a574] text-[#0a0a0a] rounded-lg font-semibold hover:bg-[#c9956b] transition-colors disabled:opacity-50"
-              >
-                {authLoading ? "Verifying..." : "Enter Arena"}
-              </button>
-              <button type="button" onClick={onClose} className="px-4 py-3 border border-[#ffffff15] rounded-lg hover:border-[#ffffff30] transition-colors">
-                Cancel
-              </button>
-            </div>
-          </form>
         </div>
       </div>
     );
@@ -389,10 +336,6 @@ export default function TestSenseiModal({ isOpen, onClose, preloadSuiteId }: Tes
               </button>
             ))}
           </div>
-
-          {loadingSuite && (
-            <div className="mt-4 text-center text-[#e8e4df]/50 text-sm">Loading suite...</div>
-          )}
         </div>
       </div>
     );
@@ -410,12 +353,17 @@ export default function TestSenseiModal({ isOpen, onClose, preloadSuiteId }: Tes
         <div className="bg-[#0a0a0a] border border-[#ffffff15] rounded-2xl p-8 max-w-2xl w-full">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold">{suiteData.name}</h2>
-            <button
-              onClick={() => { setSuiteData(null); setPhase("select"); }}
-              className="text-sm text-[#e8e4df]/50 hover:text-[#d4a574] transition-colors"
-            >
-              ← Back
-            </button>
+            {!preloadSuiteId && (
+              <button
+                onClick={() => { setSuiteData(null); setPhase("select"); }}
+                className="text-sm text-[#e8e4df]/50 hover:text-[#d4a574] transition-colors"
+              >
+                ← Back
+              </button>
+            )}
+            {preloadSuiteId && (
+              <button onClick={onClose} className="text-[#e8e4df]/50 hover:text-[#e8e4df] text-2xl">✕</button>
+            )}
           </div>
 
           <p className="text-[#e8e4df]/70 mb-6 leading-relaxed">{suiteData.description}</p>
