@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
+import Link from "next/link";
 import TestSenseiModal from "@/components/TestSenseiModal";
 
 /* ─── Demo Data ─────────────────────────────────────────────────────── */
@@ -542,13 +543,21 @@ export default function Home() {
       
       {/* ── Hero ──────────────────────────────────────────────────── */}
       <section className="hero-gradient relative min-h-screen flex items-center justify-center px-6">
-        {/* Test Sensei Button - Top Right */}
-        <button
-          onClick={() => setIsTestModalOpen(true)}
-          className="fixed top-6 right-6 z-40 px-5 py-2.5 bg-[#d4a574]/10 border border-[#d4a574]/30 rounded-lg font-semibold text-sm text-[#d4a574] hover:bg-[#d4a574]/20 transition-all duration-300 backdrop-blur-sm"
-        >
-          🥋 Test Sensei
-        </button>
+        {/* Top Right Navigation */}
+        <div className="fixed top-6 right-6 z-40 flex items-center gap-3">
+          <Link
+            href="/marketplace"
+            className="px-5 py-2.5 bg-white/5 border border-white/10 rounded-lg font-semibold text-sm text-[#e8e4df]/70 hover:text-[#d4a574] hover:border-[#d4a574]/30 transition-all duration-300 backdrop-blur-sm"
+          >
+            Marketplace
+          </Link>
+          <button
+            onClick={() => setIsTestModalOpen(true)}
+            className="px-5 py-2.5 bg-[#d4a574]/10 border border-[#d4a574]/30 rounded-lg font-semibold text-sm text-[#d4a574] hover:bg-[#d4a574]/20 transition-all duration-300 backdrop-blur-sm"
+          >
+            🥋 Test Sensei
+          </button>
+        </div>
         <div className="max-w-4xl mx-auto text-center">
           <div className="mb-8">
             <h1 className="text-6xl sm:text-7xl md:text-8xl font-bold tracking-tight mb-2">
@@ -900,6 +909,13 @@ export default function Home() {
             Built for the AI agent ecosystem
           </p>
           <div className="flex justify-center gap-6 text-sm text-[#e8e4df]/30">
+            <Link
+              href="/marketplace"
+              className="hover:text-[#d4a574] transition-colors"
+            >
+              Marketplace
+            </Link>
+            <span>·</span>
             <a
               href="https://github.com/mondaycom/sensei"
               target="_blank"
