@@ -19,7 +19,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async signIn({ user, account, profile }) {
       if (!account) return false;
       try {
-        const dbUser = upsertUser({
+        const dbUser = await upsertUser({
           provider: account.provider,
           provider_id: account.providerAccountId,
           email: user.email,

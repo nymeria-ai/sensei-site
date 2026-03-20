@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getDb } from "@/lib/db";
+import { supabaseAdmin } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { getBeltRank } from "@/lib/belt-ranks";
 
 // GET /api/marketplace/suites — list suites
 export async function GET(request: NextRequest) {
-  const db = getDb();
   const { searchParams } = request.nextUrl;
 
   const q = searchParams.get("q") || "";
@@ -15,49 +14,63 @@ export async function GET(request: NextRequest) {
   const limit = parseInt(searchParams.get("limit") || "20");
   const offset = (page - 1) * limit;
 
-  let where = "1=1";
-  const params: unknown[] = [];
-
+  // Build count query
+  let countQuery = supabaseAdmin.from("suites").select("*", { count: "exact", head: true });
   if (q) {
-    where += " AND (s.name LIKE ? OR s.description LIKE ?)";
-    params.push(`%${q}%`, `%${q}%`);
+    countQuery = countQuery.or(`name.ilike.%${q}%,description.ilike.%${q}%`);
   }
   if (category) {
-    where += " AND s.category = ?";
-    params.push(category);
+    countQuery = countQuery.eq("category", category);
+  }
+  const { count: total } = await countQuery;
+
+  // Build data query with publisher join
+  let query = supabaseAdmin
+    .from("suites")
+    .select("*, users!publisher_id(name, avatar_url, github_username)");
+
+  if (q) {
+    query = query.or(`name.ilike.%${q}%,description.ilike.%${q}%`);
+  }
+  if (category) {
+    query = query.eq("category", category);
   }
 
-  let orderBy = "s.avg_rating DESC";
-  if (sort === "downloads") orderBy = "s.download_count DESC";
-  else if (sort === "newest") orderBy = "s.created_at DESC";
+  if (sort === "downloads") {
+    query = query.order("download_count", { ascending: false });
+  } else if (sort === "newest") {
+    query = query.order("created_at", { ascending: false });
+  } else {
+    query = query.order("avg_rating", { ascending: false });
+  }
 
-  const countRow = db
-    .prepare(`SELECT COUNT(*) as total FROM suites s WHERE ${where}`)
-    .get(...params) as { total: number };
+  query = query.range(offset, offset + limit - 1);
 
-  const rows = db
-    .prepare(
-      `SELECT s.*, u.name as publisher_name, u.avatar_url as publisher_avatar, u.github_username as publisher_github
-       FROM suites s
-       LEFT JOIN users u ON s.publisher_id = u.id
-       WHERE ${where}
-       ORDER BY ${orderBy}
-       LIMIT ? OFFSET ?`
-    )
-    .all(...params, limit, offset) as Record<string, unknown>[];
+  const { data: rows, error } = await query;
 
-  const suites = rows.map((row) => ({
-    ...row,
-    tags: row.tags ? JSON.parse(row.tags as string) : [],
-    belt: getBeltRank(row.avg_rating as number),
-  }));
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  const suites = (rows ?? []).map((row) => {
+    const publisher = row.users as { name: string; avatar_url: string; github_username: string } | null;
+    return {
+      ...row,
+      users: undefined,
+      publisher_name: publisher?.name ?? null,
+      publisher_avatar: publisher?.avatar_url ?? null,
+      publisher_github: publisher?.github_username ?? null,
+      tags: typeof row.tags === "string" ? JSON.parse(row.tags) : (row.tags ?? []),
+      belt: getBeltRank(row.avg_rating as number),
+    };
+  });
 
   return NextResponse.json({
     suites,
-    total: countRow.total,
+    total: total ?? 0,
     page,
     limit,
-    totalPages: Math.ceil(countRow.total / limit),
+    totalPages: Math.ceil((total ?? 0) / limit),
   });
 }
 
@@ -80,10 +93,13 @@ export async function POST(request: NextRequest) {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
 
-  const db = getDb();
-
   // Check slug uniqueness
-  const existing = db.prepare("SELECT id FROM suites WHERE slug = ?").get(slug);
+  const { data: existing } = await supabaseAdmin
+    .from("suites")
+    .select("id")
+    .eq("slug", slug)
+    .single();
+
   if (existing) {
     return NextResponse.json({ error: "A suite with this name already exists" }, { status: 409 });
   }
@@ -98,21 +114,22 @@ export async function POST(request: NextRequest) {
     general: "/images/gi-execution.png",
   };
 
-  db.prepare(
-    `INSERT INTO suites (id, slug, name, description, category, yaml_content, publisher_id, repo_url, image_url, tags)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-  ).run(
+  const { error } = await supabaseAdmin.from("suites").insert({
     id,
     slug,
     name,
-    description || null,
-    category || "general",
+    description: description || null,
+    category: category || "general",
     yaml_content,
-    session.user.id,
-    repo_url || null,
-    categoryImages[category] || "/images/gi-execution.png",
-    tags ? JSON.stringify(tags) : "[]"
-  );
+    publisher_id: session.user.id,
+    repo_url: repo_url || null,
+    image_url: categoryImages[category] || "/images/gi-execution.png",
+    tags: tags ? JSON.stringify(tags) : "[]",
+  });
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
 
   return NextResponse.json({ id, slug }, { status: 201 });
 }

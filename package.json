@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@mondaycom/sensei-engine": "^0.0.2",
-    "better-sqlite3": "^12.8.0",
+    "@supabase/supabase-js": "^2.99.3",
     "next": "16.1.6",
     "next-auth": "^5.0.0-beta.30",
     "openai": "^6.32.0",
@@ -19,7 +19,6 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
-    "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

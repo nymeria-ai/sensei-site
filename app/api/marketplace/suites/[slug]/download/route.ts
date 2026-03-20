@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getDb } from "@/lib/db";
+import { supabaseAdmin } from "@/lib/db";
 
 // GET /api/marketplace/suites/[slug]/download — returns YAML content
 export async function GET(
@@ -7,22 +7,30 @@ export async function GET(
   { params }: { params: Promise<{ slug: string }> }
 ) {
   const { slug } = await params;
-  const db = getDb();
 
-  const row = db.prepare("SELECT id, yaml_content, name FROM suites WHERE slug = ?").get(slug) as
-    | { id: string; yaml_content: string; name: string }
-    | undefined;
+  const { data: row, error } = await supabaseAdmin
+    .from("suites")
+    .select("id, yaml_content, name, download_count")
+    .eq("slug", slug)
+    .single();
 
-  if (!row) {
+  if (error || !row) {
     return NextResponse.json({ error: "Suite not found" }, { status: 404 });
   }
 
   // Increment download count
-  db.prepare("UPDATE suites SET download_count = download_count + 1 WHERE id = ?").run(row.id);
+  await supabaseAdmin
+    .from("suites")
+    .update({ download_count: (row as Record<string, unknown>).download_count as number + 1 })
+    .eq("id", row.id);
 
   // Track download
   const downloadId = crypto.randomUUID();
-  db.prepare("INSERT INTO downloads (id, suite_id, method) VALUES (?, ?, 'yaml')").run(downloadId, row.id);
+  await supabaseAdmin.from("downloads").insert({
+    id: downloadId,
+    suite_id: row.id,
+    method: "yaml",
+  });
 
   return new NextResponse(row.yaml_content, {
     headers: {

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getDb, recalculateSuiteRating } from "@/lib/db";
+import { supabaseAdmin, recalculateSuiteRating } from "@/lib/db";
 import { auth } from "@/lib/auth";
 
 // POST /api/marketplace/suites/[slug]/rate — rate a suite
@@ -13,8 +13,12 @@ export async function POST(
   }
 
   const { slug } = await params;
-  const db = getDb();
-  const suite = db.prepare("SELECT id FROM suites WHERE slug = ?").get(slug) as { id: string } | undefined;
+
+  const { data: suite } = await supabaseAdmin
+    .from("suites")
+    .select("id")
+    .eq("slug", slug)
+    .single();
 
   if (!suite) {
     return NextResponse.json({ error: "Suite not found" }, { status: 404 });
@@ -28,23 +32,29 @@ export async function POST(
   }
 
   // Upsert rating
-  const existing = db
-    .prepare("SELECT id FROM ratings WHERE suite_id = ? AND user_id = ?")
-    .get(suite.id, session.user.id) as { id: string } | undefined;
+  const { data: existing } = await supabaseAdmin
+    .from("ratings")
+    .select("id")
+    .eq("suite_id", suite.id)
+    .eq("user_id", session.user.id)
+    .single();
 
   if (existing) {
-    db.prepare("UPDATE ratings SET score = ?, created_at = datetime('now') WHERE id = ?").run(score, existing.id);
+    await supabaseAdmin
+      .from("ratings")
+      .update({ score, created_at: new Date().toISOString() })
+      .eq("id", existing.id);
   } else {
     const id = crypto.randomUUID();
-    db.prepare("INSERT INTO ratings (id, suite_id, user_id, score) VALUES (?, ?, ?, ?)").run(
+    await supabaseAdmin.from("ratings").insert({
       id,
-      suite.id,
-      session.user.id,
-      score
-    );
+      suite_id: suite.id,
+      user_id: session.user.id,
+      score,
+    });
   }
 
-  recalculateSuiteRating(suite.id);
+  await recalculateSuiteRating(suite.id);
 
   return NextResponse.json({ success: true });
 }
@@ -60,16 +70,24 @@ export async function DELETE(
   }
 
   const { slug } = await params;
-  const db = getDb();
-  const suite = db.prepare("SELECT id FROM suites WHERE slug = ?").get(slug) as { id: string } | undefined;
+
+  const { data: suite } = await supabaseAdmin
+    .from("suites")
+    .select("id")
+    .eq("slug", slug)
+    .single();
 
   if (!suite) {
     return NextResponse.json({ error: "Suite not found" }, { status: 404 });
   }
 
-  db.prepare("DELETE FROM ratings WHERE suite_id = ? AND user_id = ?").run(suite.id, session.user.id);
+  await supabaseAdmin
+    .from("ratings")
+    .delete()
+    .eq("suite_id", suite.id)
+    .eq("user_id", session.user.id);
 
-  recalculateSuiteRating(suite.id);
+  await recalculateSuiteRating(suite.id);
 
   return NextResponse.json({ success: true });
 }
