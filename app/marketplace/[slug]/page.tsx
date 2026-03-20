@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect, use } from "react";
+import { useSession } from "next-auth/react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { BeltBadge } from "@/components/BeltBadge";
 import { InstallTabs } from "@/components/InstallTabs";
@@ -30,6 +32,9 @@ type SuiteDetail = {
 
 export default function SuiteDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
+  const { data: session, status: authStatus } = useSession();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [suite, setSuite] = useState<SuiteDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [showYaml, setShowYaml] = useState(false);
@@ -44,6 +49,24 @@ export default function SuiteDetailPage({ params }: { params: Promise<{ slug: st
   };
 
   useEffect(() => { fetchSuite(); }, [slug]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Auto-open test modal if returning from sign-in with ?test=1
+  useEffect(() => {
+    if (searchParams.get("test") === "1" && session && !loading && suite) {
+      setShowTest(true);
+      // Clean up the URL without triggering navigation
+      window.history.replaceState({}, "", `/marketplace/${slug}`);
+    }
+  }, [searchParams, session, loading, suite, slug]);
+
+  const handleTestClick = () => {
+    if (!session) {
+      // Redirect to sign-in, then come back with ?test=1
+      router.push(`/auth/signin?callbackUrl=${encodeURIComponent(`/marketplace/${slug}?test=1`)}`);
+      return;
+    }
+    setShowTest(true);
+  };
 
   if (loading) {
     return (
@@ -134,11 +157,11 @@ export default function SuiteDetailPage({ params }: { params: Promise<{ slug: st
 
               {/* Test it button */}
               <button
-                onClick={() => setShowTest(true)}
+                onClick={handleTestClick}
                 className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#d4a574] to-[#c9956b] text-[#0a0a0a] rounded-lg font-bold text-sm hover:from-[#c9956b] hover:to-[#b8845a] transition-all shadow-lg shadow-[#d4a574]/20 cursor-pointer"
               >
                 <span className="text-lg">🥋</span>
-                Test it!
+                {session ? "Test it!" : "Sign in to Test"}
               </button>
             </div>
           </div>
