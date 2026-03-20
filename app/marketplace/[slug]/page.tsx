@@ -6,6 +6,7 @@ import { BeltBadge } from "@/components/BeltBadge";
 import { InstallTabs } from "@/components/InstallTabs";
 import { RatingSlider } from "@/components/RatingSlider";
 import { AuthButton } from "@/components/AuthButton";
+import TestSenseiModal from "@/components/TestSenseiModal";
 
 type SuiteDetail = {
   slug: string;
@@ -32,6 +33,7 @@ export default function SuiteDetailPage({ params }: { params: Promise<{ slug: st
   const [suite, setSuite] = useState<SuiteDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [showYaml, setShowYaml] = useState(false);
+  const [showTest, setShowTest] = useState(false);
 
   const fetchSuite = async () => {
     const res = await fetch(`/api/marketplace/suites/${slug}`);
@@ -129,6 +131,15 @@ export default function SuiteDetailPage({ params }: { params: Promise<{ slug: st
                 </div>
                 <span className="text-xs text-[#e8e4df]/20">v{suite.version}</span>
               </div>
+
+              {/* Test it button */}
+              <button
+                onClick={() => setShowTest(true)}
+                className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#d4a574] to-[#c9956b] text-[#0a0a0a] rounded-lg font-bold text-sm hover:from-[#c9956b] hover:to-[#b8845a] transition-all shadow-lg shadow-[#d4a574]/20 cursor-pointer"
+              >
+                <span className="text-lg">🥋</span>
+                Test it!
+              </button>
             </div>
           </div>
 
@@ -260,6 +271,13 @@ export default function SuiteDetailPage({ params }: { params: Promise<{ slug: st
           </div>
         </div>
       </div>
+
+      {/* Test Modal */}
+      <TestSenseiModal
+        isOpen={showTest}
+        onClose={() => setShowTest(false)}
+        preloadSuiteId={suite.slug}
+      />
     </main>
   );
 }

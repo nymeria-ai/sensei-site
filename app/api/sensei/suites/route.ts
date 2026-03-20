@@ -9,6 +9,10 @@ const SUITE_MAPPING: Record<string, string> = {
   'bartender': 'bartender.yaml',
   'dungeon-master': 'dungeon-master.yaml',
   'cat-interview': 'cat-interview.yaml',
+  // Marketplace slugs (alias to same files)
+  'sdr-qualification': 'sdr-qualification.yaml',
+  'customer-support': 'customer-support.yaml',
+  'content-writer': 'content-writer.yaml',
 };
 
 const loader = new SuiteLoader();

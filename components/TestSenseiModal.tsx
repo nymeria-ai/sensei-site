@@ -38,6 +38,7 @@ interface Suite {
 interface TestSenseiModalProps {
   isOpen: boolean;
   onClose: () => void;
+  preloadSuiteId?: string; // Skip auth+select, go straight to loading this suite
 }
 
 type Badge = "gold" | "silver" | "bronze" | "none";
@@ -84,7 +85,7 @@ const LAYER_LABELS: Record<string, string> = {
   "self-improvement": "📈 Self-Improvement",
 };
 
-export default function TestSenseiModal({ isOpen, onClose }: TestSenseiModalProps) {
+export default function TestSenseiModal({ isOpen, onClose, preloadSuiteId }: TestSenseiModalProps) {
   const [phase, setPhase] = useState<Phase>("auth");
   const [password, setPassword] = useState("");
   const [authError, setAuthError] = useState("");
@@ -102,17 +103,24 @@ export default function TestSenseiModal({ isOpen, onClose }: TestSenseiModalProp
   const [scoringError, setScoringError] = useState("");
   const [scenarioResults, setScenarioResults] = useState<ScenarioResult[]>([]);
 
-  // Check localStorage on open
+  // Check localStorage on open, or auto-load preloaded suite
   useEffect(() => {
     if (isOpen) {
-      const saved = localStorage.getItem("sensei-auth");
-      if (saved === "true") {
-        setPhase("select");
+      if (preloadSuiteId) {
+        // Skip auth+select, go straight to loading the suite
+        localStorage.setItem("sensei-auth", "true");
+        setPhase("select"); // Will immediately trigger loadSuite below
+        loadSuite(preloadSuiteId);
       } else {
-        setPhase("auth");
+        const saved = localStorage.getItem("sensei-auth");
+        if (saved === "true") {
+          setPhase("select");
+        } else {
+          setPhase("auth");
+        }
       }
     }
-  }, [isOpen]);
+  }, [isOpen, preloadSuiteId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Reset on close
   useEffect(() => {
