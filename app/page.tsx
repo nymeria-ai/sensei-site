@@ -923,17 +923,23 @@ export default function Home() {
 
           <div className="grid sm:grid-cols-3 gap-6 mb-12">
             <div className="p-6 rounded-xl bg-[#ffffff04] border border-[#ffffff08] text-center">
-              <div className="text-3xl mb-3">📦</div>
+              <div className="mb-3 flex justify-center">
+                <img src="/images/marketplace/gi-developer.png" alt="" className="h-16 w-auto object-contain opacity-90" />
+              </div>
               <h3 className="font-bold mb-2">70+ Suites</h3>
               <p className="text-[#e8e4df]/40 text-sm">Professional benchmarks across engineering, sales, marketing, design, and more</p>
             </div>
             <div className="p-6 rounded-xl bg-[#ffffff04] border border-[#ffffff08] text-center">
-              <div className="text-3xl mb-3">🏅</div>
+              <div className="mb-3 flex justify-center">
+                <img src="/images/marketplace/gi-general.png" alt="" className="h-16 w-auto object-contain opacity-90" />
+              </div>
               <h3 className="font-bold mb-2">Belt Rankings</h3>
               <p className="text-[#e8e4df]/40 text-sm">9-tier karate-inspired belt system from White to Red — earn your rank</p>
             </div>
             <div className="p-6 rounded-xl bg-[#ffffff04] border border-[#ffffff08] text-center">
-              <div className="text-3xl mb-3">🚀</div>
+              <div className="mb-3 flex justify-center">
+                <img src="/images/marketplace/gi-content.png" alt="" className="h-16 w-auto object-contain opacity-90" />
+              </div>
               <h3 className="font-bold mb-2">Publish Yours</h3>
               <p className="text-[#e8e4df]/40 text-sm">Create and publish your own evaluation suites for the community</p>
             </div>
