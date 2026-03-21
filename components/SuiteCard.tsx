@@ -31,15 +31,6 @@ export function SuiteCard({ suite }: { suite: Suite }) {
   return (
     <Link href={`/marketplace/${suite.slug}`}>
       <div className="group h-full p-5 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 hover:border-[#d4a574]/30 transition-all duration-300 cursor-pointer">
-        {/* Image */}
-        <div className="mb-4 h-28 flex items-center justify-center">
-          <img
-            src={suite.image_url || "/images/gi-execution.png"}
-            alt={suite.name}
-            className="h-24 w-auto object-contain opacity-80 group-hover:opacity-100 transition-opacity"
-          />
-        </div>
-
         {/* Name + Category */}
         <div className="flex items-start justify-between gap-2 mb-2">
           <h3 className="font-bold text-[#e8e4df] leading-tight">{suite.name}</h3>

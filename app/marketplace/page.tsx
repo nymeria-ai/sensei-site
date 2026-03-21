@@ -1,17 +1,28 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { SuiteCard } from "@/components/SuiteCard";
 import { AuthButton } from "@/components/AuthButton";
 
 const CATEGORIES = [
   { key: "", label: "All" },
+  { key: "engineering", label: "Engineering" },
   { key: "sales", label: "Sales" },
+  { key: "marketing", label: "Marketing" },
+  { key: "product", label: "Product" },
+  { key: "design", label: "Design" },
   { key: "support", label: "Support" },
+  { key: "testing", label: "Testing" },
+  { key: "analytics", label: "Analytics" },
+  { key: "paid-media", label: "Paid Media" },
+  { key: "specialized", label: "Specialized" },
+  { key: "devrel", label: "DevRel" },
+  { key: "pm", label: "PM" },
+  { key: "compliance", label: "Compliance" },
   { key: "dev", label: "Dev" },
   { key: "content", label: "Content" },
-  { key: "fun", label: "Fun" },
 ];
 
 const SORTS = [
@@ -23,29 +34,77 @@ const SORTS = [
 export default function MarketplacePage() {
   const [suites, setSuites] = useState<unknown[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("");
   const [sort, setSort] = useState("rating");
   const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
-  const fetchSuites = useCallback(async () => {
-    setLoading(true);
+  const fetchSuites = useCallback(async (pageNum: number, append: boolean) => {
+    if (pageNum === 1) {
+      setLoading(true);
+    } else {
+      setLoadingMore(true);
+    }
+
     const params = new URLSearchParams();
     if (query) params.set("q", query);
     if (category) params.set("category", category);
     params.set("sort", sort);
+    params.set("page", String(pageNum));
+    params.set("limit", "20");
 
     const res = await fetch(`/api/marketplace/suites?${params}`);
     const data = await res.json();
-    setSuites(data.suites || []);
+    const newSuites = data.suites || [];
+
+    if (append) {
+      setSuites((prev) => [...prev, ...newSuites]);
+    } else {
+      setSuites(newSuites);
+    }
     setTotal(data.total || 0);
-    setLoading(false);
+    setHasMore(pageNum < (data.totalPages || 1));
+
+    if (pageNum === 1) {
+      setLoading(false);
+    } else {
+      setLoadingMore(false);
+    }
   }, [query, category, sort]);
 
+  // Reset and fetch page 1 when filters change
   useEffect(() => {
-    const timeout = setTimeout(fetchSuites, 300);
+    setPage(1);
+    setHasMore(true);
+    const timeout = setTimeout(() => fetchSuites(1, false), 300);
     return () => clearTimeout(timeout);
   }, [fetchSuites]);
+
+  // IntersectionObserver for infinite scroll
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loading && !loadingMore) {
+          setPage((prev) => {
+            const next = prev + 1;
+            fetchSuites(next, true);
+            return next;
+          });
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [hasMore, loading, loadingMore, fetchSuites]);
 
   return (
     <main className="min-h-screen">
@@ -69,9 +128,25 @@ export default function MarketplacePage() {
       {/* Hero */}
       <section className="pt-28 pb-12 px-6">
         <div className="max-w-7xl mx-auto text-center">
-          <h1 className="text-4xl sm:text-5xl font-bold mb-4">
-            Suite <span className="badge-shimmer">Marketplace</span>
-          </h1>
+          <div className="flex items-center justify-center gap-6 mb-4">
+            <Image
+              src="/images/marketplace/gi-fun.png"
+              alt=""
+              width={90}
+              height={90}
+              className="hidden sm:block opacity-60 h-20 sm:h-24 w-auto"
+            />
+            <h1 className="text-4xl sm:text-5xl font-bold">
+              Suite <span className="badge-shimmer">Marketplace</span>
+            </h1>
+            <Image
+              src="/images/marketplace/gi-developer.png"
+              alt=""
+              width={90}
+              height={90}
+              className="hidden sm:block opacity-60 h-20 sm:h-24 w-auto"
+            />
+          </div>
           <p className="text-[#e8e4df]/50 max-w-xl mx-auto mb-8">
             Discover, download, and publish evaluation suites for AI agents.
           </p>
@@ -158,6 +233,13 @@ export default function MarketplacePage() {
                   );
                 })}
               </div>
+              {/* Sentinel for infinite scroll */}
+              <div ref={sentinelRef} className="h-4" />
+              {loadingMore && (
+                <div className="flex justify-center py-8">
+                  <div className="w-6 h-6 border-2 border-[#d4a574]/30 border-t-[#d4a574] rounded-full animate-spin" />
+                </div>
+              )}
             </>
           )}
         </div>

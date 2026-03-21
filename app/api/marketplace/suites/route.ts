@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
   const offset = (page - 1) * limit;
 
   // Build count query
-  let countQuery = supabaseAdmin.from("suites").select("*", { count: "exact", head: true });
+  let countQuery = supabaseAdmin.from("suites").select("*", { count: "exact", head: true }).eq("status", "released");
   if (q) {
     countQuery = countQuery.or(`name.ilike.%${q}%,description.ilike.%${q}%`);
   }
@@ -27,7 +27,8 @@ export async function GET(request: NextRequest) {
   // Build data query with publisher join
   let query = supabaseAdmin
     .from("suites")
-    .select("*, users!publisher_id(name, avatar_url, github_username)");
+    .select("*, users!publisher_id(name, avatar_url, github_username)")
+    .eq("status", "released");
 
   if (q) {
     query = query.or(`name.ilike.%${q}%,description.ilike.%${q}%`);
