@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { SuiteCard } from "@/components/SuiteCard";
 import { AuthButton } from "@/components/AuthButton";
+import { trackSuiteSearch, trackCategoryFilter, trackSortChange, trackLoadMore, trackCTAClick } from "@/lib/posthog";
 
 const CATEGORIES = [
   { key: "", label: "All" },
@@ -94,6 +95,7 @@ export default function MarketplacePage() {
         if (entries[0].isIntersecting && hasMore && !loading && !loadingMore) {
           setPage((prev) => {
             const next = prev + 1;
+            trackLoadMore(next);
             fetchSuites(next, true);
             return next;
           });
@@ -167,7 +169,7 @@ export default function MarketplacePage() {
             <input
               type="text"
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={(e) => { setQuery(e.target.value); if (e.target.value.length > 2) trackSuiteSearch(e.target.value, total); }}
               placeholder="Search suites..."
               className="w-full max-w-md px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-[#e8e4df] text-sm placeholder:text-[#e8e4df]/30 focus:border-[#d4a574]/50 focus:outline-none transition-colors"
             />
@@ -179,7 +181,7 @@ export default function MarketplacePage() {
               {CATEGORIES.map((cat) => (
                 <button
                   key={cat.key}
-                  onClick={() => setCategory(cat.key)}
+                  onClick={() => { setCategory(cat.key); trackCategoryFilter(cat.key || "all"); }}
                   className={`px-4 py-1.5 text-xs font-medium rounded-full transition-all cursor-pointer ${
                     category === cat.key
                       ? "bg-[#d4a574] text-[#0a0a0a]"
@@ -192,7 +194,7 @@ export default function MarketplacePage() {
             </div>
             <select
               value={sort}
-              onChange={(e) => setSort(e.target.value)}
+              onChange={(e) => { setSort(e.target.value); trackSortChange(e.target.value); }}
               className="px-3 py-1.5 text-xs rounded-lg bg-white/5 border border-white/10 text-[#e8e4df]/60 focus:outline-none cursor-pointer"
             >
               {SORTS.map((s) => (

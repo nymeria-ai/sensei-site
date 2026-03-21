@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import Link from "next/link";
 import TestSenseiModal from "@/components/TestSenseiModal";
+import { trackCTAClick, trackTestStarted } from "@/lib/posthog";
 
 /* ─── Demo Data ─────────────────────────────────────────────────────── */
 

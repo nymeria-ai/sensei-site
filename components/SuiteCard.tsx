@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { BeltBadge } from "./BeltBadge";
+import { trackSuiteView } from "@/lib/posthog";
 
 type Suite = {
   slug: string;
@@ -29,7 +30,7 @@ const categoryColors: Record<string, string> = {
 
 export function SuiteCard({ suite }: { suite: Suite }) {
   return (
-    <Link href={`/marketplace/${suite.slug}`}>
+    <Link href={`/marketplace/${suite.slug}`} onClick={() => trackSuiteView(suite.slug, suite.category)}>
       <div className="group h-full p-5 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 hover:border-[#d4a574]/30 transition-all duration-300 cursor-pointer">
         {/* Name + Category */}
         <div className="flex items-start justify-between gap-2 mb-2">
