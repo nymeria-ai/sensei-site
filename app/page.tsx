@@ -593,6 +593,12 @@ export default function Home() {
             >
               Read the Docs
             </a>
+            <Link
+              href="/marketplace"
+              className="px-8 py-3.5 border border-[#e8e4df]/20 rounded-lg font-semibold text-sm tracking-wide text-[#e8e4df]/80 hover:border-[#d4a574]/50 hover:text-[#d4a574] transition-all duration-300"
+            >
+              🥋 Marketplace
+            </Link>
           </div>
         </div>
 
@@ -897,6 +903,49 @@ export default function Home() {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Marketplace CTA ─────────────────────────────────────── */}
+      <section className="py-32 px-6 bg-[#ffffff02]">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl sm:text-4xl font-bold mb-4">
+              Suite <span className="badge-shimmer">Marketplace</span>
+            </h2>
+            <p className="text-[#e8e4df]/50 max-w-2xl mx-auto text-lg leading-relaxed">
+              Discover 70+ professional evaluation suites built by the community.
+              From SDR and engineering to marketing and product — find the right
+              benchmark for your agent, or publish your own.
+            </p>
+          </div>
+
+          <div className="grid sm:grid-cols-3 gap-6 mb-12">
+            <div className="p-6 rounded-xl bg-[#ffffff04] border border-[#ffffff08] text-center">
+              <div className="text-3xl mb-3">📦</div>
+              <h3 className="font-bold mb-2">70+ Suites</h3>
+              <p className="text-[#e8e4df]/40 text-sm">Professional benchmarks across engineering, sales, marketing, design, and more</p>
+            </div>
+            <div className="p-6 rounded-xl bg-[#ffffff04] border border-[#ffffff08] text-center">
+              <div className="text-3xl mb-3">🏅</div>
+              <h3 className="font-bold mb-2">Belt Rankings</h3>
+              <p className="text-[#e8e4df]/40 text-sm">9-tier karate-inspired belt system from White to Red — earn your rank</p>
+            </div>
+            <div className="p-6 rounded-xl bg-[#ffffff04] border border-[#ffffff08] text-center">
+              <div className="text-3xl mb-3">🚀</div>
+              <h3 className="font-bold mb-2">Publish Yours</h3>
+              <p className="text-[#e8e4df]/40 text-sm">Create and publish your own evaluation suites for the community</p>
+            </div>
+          </div>
+
+          <div className="text-center">
+            <Link
+              href="/marketplace"
+              className="inline-block px-10 py-4 bg-[#d4a574] text-[#0a0a0a] rounded-lg font-semibold text-base tracking-wide hover:bg-[#c9956b] transition-colors duration-300"
+            >
+              Browse the Marketplace →
+            </Link>
           </div>
         </div>
       </section>
